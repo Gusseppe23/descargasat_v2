@@ -1,0 +1,31 @@
+name: laravel-dev
+
+services:
+  dev:
+    build:
+      context: .
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.5}
+        NODE_MAJOR: ${NODE_MAJOR:-24}
+        INSTALL_CLAUDE_CODE: ${INSTALL_CLAUDE_CODE:-false}
+    image: laravel-dev:php${PHP_VERSION:-8.5}
+    container_name: laravel-dev
+    working_dir: /app
+    command: sleep infinity
+    init: true
+    environment:
+      # php artisan serve escucha en todas las interfaces para que Windows lo vea
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: "8000"
+      TZ: America/Mexico_City
+    ports:
+      - "8000:8000"   # php artisan serve
+      - "5173:5173"   # Vite
+    volumes:
+      # Carpeta del proyecto en tu equipo (la define build.ps1 en .env)
+      - ${PROJECT_DIR:-./app}:/app
+      # Home persistente: sesión de gh, config de git, caché de composer/npm
+      - home:/home/dev
+
+volumes:
+  home:
