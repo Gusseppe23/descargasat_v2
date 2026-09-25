@@ -6,3 +6,6 @@ parameters:
     paths:
         - app
         - app-modules
+    excludePaths:
+        - app-modules/*/tests/*
+        - app-modules/*/resources/*
