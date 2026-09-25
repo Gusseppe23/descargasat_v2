@@ -1,0 +1,3 @@
+# Verificación por revisión programada
+
+Las Solicitudes pendientes se verifican con una tarea del scheduler de Laravel que corre cada 5 minutos, recorre todas las Solicitudes sin estado final y consulta al SAT por cada una. Descartamos tener un job por Solicitud que se reprograma a sí mismo porque es más difícil de depurar y, si se pierde un job (por ejemplo, al reiniciar el servidor), esa Solicitud deja de verificarse sin que nadie lo note. Con la revisión programada, el estado vive solo en la base de datos. La descarga de Paquetes sí usa jobs en cola, porque es trabajo pesado y cada Paquete se reintenta por separado.
