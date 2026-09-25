@@ -37,3 +37,9 @@ yarn-error.log
 /boost.json
 /opencode.json
 /opencode.jsonc
+
+# descarga_sat: FIEL y paquetes del SAT nunca van al repo
+/storage/app/private/fiel/
+/storage/app/private/paquetes/
+*.cer
+*.key
