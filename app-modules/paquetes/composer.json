@@ -1,0 +1,24 @@
+{
+	"name": "descarga-sat/paquetes",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"DescargaSat\\Paquetes\\": "src/",
+			"DescargaSat\\Paquetes\\Tests\\": "tests/",
+			"DescargaSat\\Paquetes\\Database\\Factories\\": "database/factories/",
+			"DescargaSat\\Paquetes\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"DescargaSat\\Paquetes\\Providers\\PaquetesServiceProvider"
+			]
+		}
+	}
+}

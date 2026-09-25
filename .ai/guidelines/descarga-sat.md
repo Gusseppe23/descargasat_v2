@@ -7,3 +7,4 @@
 - Antes de terminar una tarea: php artisan test, vendor/bin/pint, vendor/bin/phpstan analyse --memory-limit=1G.
 - Idioma del dominio en español (Solicitud, Paquete, Fiel, Verificacion); ver CONTEXT.md.
 - Todo corre dentro del contenedor Docker laravel-dev; el proyecto está en /app.
+- Los módulos usan internachi/modular con namespace DescargaSat (ej. DescargaSat\Fiel\Models\Fiel). Para generar clases en un módulo: php artisan make:model Fiel --module=fiel (lo mismo con make:migration, make:controller, make:test, etc.).

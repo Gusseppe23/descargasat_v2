@@ -10,7 +10,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "descarga-sat/descargas": "*",
+        "descarga-sat/fiel": "*",
+        "descarga-sat/paquetes": "*",
+        "descarga-sat/sat-autenticacion": "*",
+        "descarga-sat/solicitudes": "*",
+        "descarga-sat/verificacion": "*",
         "guzzlehttp/guzzle": "^8.2",
+        "internachi/modular": "^3.0",
         "laravel/chisel": "^0.1.0",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.17",
@@ -115,5 +122,14 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "app-modules/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ]
 }

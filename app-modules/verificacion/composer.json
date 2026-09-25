@@ -1,0 +1,24 @@
+{
+	"name": "descarga-sat/verificacion",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"DescargaSat\\Verificacion\\": "src/",
+			"DescargaSat\\Verificacion\\Tests\\": "tests/",
+			"DescargaSat\\Verificacion\\Database\\Factories\\": "database/factories/",
+			"DescargaSat\\Verificacion\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"DescargaSat\\Verificacion\\Providers\\VerificacionServiceProvider"
+			]
+		}
+	}
+}

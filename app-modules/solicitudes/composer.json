@@ -1,0 +1,24 @@
+{
+	"name": "descarga-sat/solicitudes",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"DescargaSat\\Solicitudes\\": "src/",
+			"DescargaSat\\Solicitudes\\Tests\\": "tests/",
+			"DescargaSat\\Solicitudes\\Database\\Factories\\": "database/factories/",
+			"DescargaSat\\Solicitudes\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"DescargaSat\\Solicitudes\\Providers\\SolicitudesServiceProvider"
+			]
+		}
+	}
+}

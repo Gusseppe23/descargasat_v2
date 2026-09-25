@@ -1,0 +1,24 @@
+{
+	"name": "descarga-sat/fiel",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"DescargaSat\\Fiel\\": "src/",
+			"DescargaSat\\Fiel\\Tests\\": "tests/",
+			"DescargaSat\\Fiel\\Database\\Factories\\": "database/factories/",
+			"DescargaSat\\Fiel\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"DescargaSat\\Fiel\\Providers\\FielServiceProvider"
+			]
+		}
+	}
+}
