@@ -32,6 +32,25 @@ class FielFactory extends Factory
     }
 
     /**
+     * La Fiel activa.
+     */
+    public function activa(): static
+    {
+        return $this->state(fn (): array => ['activa' => true]);
+    }
+
+    /**
+     * Fiel que ya dejó de estar vigente.
+     */
+    public function vencida(): static
+    {
+        return $this->state(fn (): array => [
+            'vigente_desde' => now()->subYears(4),
+            'vigente_hasta' => now()->subDay(),
+        ]);
+    }
+
+    /**
      * Fiel emitida a otro RFC.
      */
     public function deRfc(string $rfc): static

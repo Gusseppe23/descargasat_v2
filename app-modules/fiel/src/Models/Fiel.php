@@ -3,6 +3,7 @@
 namespace DescargaSat\Fiel\Models;
 
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use DescargaSat\Fiel\Database\Factories\FielFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -10,23 +11,25 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property string $rfc
  * @property string $razon_social
  * @property string $numero_certificado
- * @property Carbon $vigente_desde
- * @property Carbon $vigente_hasta
+ * @property CarbonImmutable $vigente_desde
+ * @property CarbonImmutable $vigente_hasta
  * @property bool $activa
  * @property string $ruta_cer
  * @property string $ruta_key
  * @property string $contrasena
  * @property int|null $subida_por_id
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property int|null $estado_cambiado_por_id
+ * @property CarbonImmutable|null $estado_cambiado_el
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  * @property-read User|null $subidaPor
+ * @property-read User|null $estadoCambiadoPor
  */
 #[Table('fieles')]
 #[Fillable(['rfc', 'razon_social', 'numero_certificado', 'vigente_desde', 'vigente_hasta', 'ruta_cer', 'ruta_key', 'contrasena', 'subida_por_id'])]
@@ -47,6 +50,7 @@ class Fiel extends Model
             'vigente_desde' => 'datetime',
             'vigente_hasta' => 'datetime',
             'activa' => 'boolean',
+            'estado_cambiado_el' => 'datetime',
             'contrasena' => 'encrypted',
         ];
     }
@@ -59,5 +63,15 @@ class Fiel extends Model
     public function subidaPor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'subida_por_id');
+    }
+
+    /**
+     * Usuario que activó o desactivó esta Fiel por última vez.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function estadoCambiadoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'estado_cambiado_por_id');
     }
 }
