@@ -1,7 +1,7 @@
 # Proyecto descarga_sat
 
 - Monolito modular: cada módulo vive en app-modules/<modulo> con sus propias rutas, modelos, migraciones y pruebas.
-- Un módulo solo usa a otro a través de su interfaz pública (contratos en src/Contracts); nunca sus modelos directamente.
+- Un módulo solo usa a otro a través de su interfaz pública (contratos en src/Contracts); nunca sus modelos directamente. Excepción: las pruebas sí pueden usar fábricas y modelos de otros módulos para preparar datos y revisar resultados, para no agregar métodos a los contratos solo para probar.
 - Todo acceso al SAT pasa por el módulo sat-autenticacion (fábrica de Service). En pruebas se usa un doble de WebClientInterface; nunca se llama al SAT real en pruebas.
 - La FIEL (.cer, .key, contraseña) se guarda cifrada en storage/app/private/fiel y en BD con el cast encrypted. Nunca se registra en logs ni se muestra en respuestas.
 - Antes de terminar una tarea: php artisan test, vendor/bin/pint, vendor/bin/phpstan analyse --memory-limit=1G.
