@@ -2,9 +2,9 @@
 
 namespace DescargaSat\Solicitudes\Services;
 
+use DescargaSat\Solicitudes\Contracts\DatosSolicitud;
 use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Contracts\Solicitudes;
-use DescargaSat\Solicitudes\Contracts\DatosSolicitud;
 use DescargaSat\Solicitudes\Models\Solicitud;
 
 class SolicitudesGuardadas implements Solicitudes
