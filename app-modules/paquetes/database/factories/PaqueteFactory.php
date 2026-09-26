@@ -32,4 +32,15 @@ class PaqueteFactory extends Factory
     {
         return $this->state(fn (): array => ['estado' => EstadoPaquete::Extraido]);
     }
+
+    /**
+     * Paquete que no se pudo descargar.
+     */
+    public function fallido(): static
+    {
+        return $this->state(fn (): array => [
+            'estado' => EstadoPaquete::Fallido,
+            'ultimo_problema' => 'No se pudo contactar al SAT (Error connecting).',
+        ]);
+    }
 }

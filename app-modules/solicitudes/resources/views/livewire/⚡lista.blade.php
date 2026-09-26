@@ -22,7 +22,7 @@ new #[Title('Solicitudes')] class extends Component {
     }
 }; ?>
 
-<section class="w-full space-y-6">
+<section class="w-full space-y-6" @if ($this->solicitudes->contains(fn (Solicitud $solicitud): bool => $solicitud->estado->enCurso())) wire:poll.15s @endif>
     <div class="flex items-center justify-between">
         <flux:heading size="xl" level="1">{{ __('Solicitudes') }}</flux:heading>
         <flux:button variant="primary" :href="route('solicitudes.create')" wire:navigate>{{ __('Nueva solicitud') }}</flux:button>
@@ -37,6 +37,7 @@ new #[Title('Solicitudes')] class extends Component {
             <flux:table.column>{{ __('Filtros') }}</flux:table.column>
             <flux:table.column>{{ __('Estado') }}</flux:table.column>
             <flux:table.column>{{ __('Presentada por') }}</flux:table.column>
+            <flux:table.column></flux:table.column>
         </flux:table.columns>
 
         <flux:table.rows>
@@ -50,21 +51,19 @@ new #[Title('Solicitudes')] class extends Component {
                         {{ $solicitud->tipo_comprobante?->etiqueta() ?? __('Todos los tipos') }} · {{ $solicitud->estado_comprobante->etiqueta() }}
                     </flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge size="sm" :color="match ($solicitud->estado) {
-                            EstadoSolicitud::Rechazada, EstadoSolicitud::Error, EstadoSolicitud::Vencida, EstadoSolicitud::Abandonada => 'red',
-                            EstadoSolicitud::Descargada => 'green',
-                            EstadoSolicitud::SinResultados => 'zinc',
-                            default => 'blue',
-                        }">{{ $solicitud->estado->etiqueta() }}</flux:badge>
+                        <x-solicitudes::estado :solicitud="$solicitud" />
                         @if ($solicitud->estado === EstadoSolicitud::Rechazada)
                             <flux:text size="sm">{{ $solicitud->mensaje_sat }}</flux:text>
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>{{ $solicitud->presentadaPor?->name }}</flux:table.cell>
+                    <flux:table.cell align="end">
+                        <flux:button size="sm" :href="route('solicitudes.show', $solicitud)" wire:navigate>{{ __('Ver') }}</flux:button>
+                    </flux:table.cell>
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="7">{{ __('Todavía no has presentado ninguna solicitud.') }}</flux:table.cell>
+                    <flux:table.cell colspan="8">{{ __('Todavía no has presentado ninguna solicitud.') }}</flux:table.cell>
                 </flux:table.row>
             @endforelse
         </flux:table.rows>

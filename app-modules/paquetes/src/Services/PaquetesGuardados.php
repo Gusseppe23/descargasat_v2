@@ -64,7 +64,7 @@ class PaquetesGuardados implements Paquetes
     {
         $paquete = Paquete::findOrFail($id);
 
-        Storage::disk('local')->put($this->rutaZip($paquete), $zip);
+        Storage::disk('local')->put($paquete->rutaZip(), $zip);
 
         $paquete->estado = EstadoPaquete::Descargado;
         $paquete->save();
@@ -76,7 +76,7 @@ class PaquetesGuardados implements Paquetes
         $disco = Storage::disk('local');
         $zip = new ZipArchive;
 
-        if ($zip->open($disco->path($this->rutaZip($paquete)), ZipArchive::RDONLY) !== true) {
+        if ($zip->open($disco->path($paquete->rutaZip()), ZipArchive::RDONLY) !== true) {
             throw new PaqueteDanado("El ZIP del Paquete {$paquete->id_paquete_sat} no se puede abrir.");
         }
 
@@ -96,7 +96,7 @@ class PaquetesGuardados implements Paquetes
             }
 
             foreach ($nombres as $indice => $nombre) {
-                $disco->put($this->carpeta($paquete).'/'.$nombre, (string) $zip->getFromIndex($indice));
+                $disco->put($paquete->carpeta().'/'.$nombre, (string) $zip->getFromIndex($indice));
             }
         } finally {
             $zip->close();
@@ -116,19 +116,6 @@ class PaquetesGuardados implements Paquetes
         }
 
         return ! in_array('..', explode('/', $nombre), true);
-    }
-
-    private function rutaZip(Paquete $paquete): string
-    {
-        return $this->carpeta($paquete).'.zip';
-    }
-
-    /**
-     * Carpeta del Contenido del Paquete; el ZIP se guarda junto a ella con el mismo nombre.
-     */
-    private function carpeta(Paquete $paquete): string
-    {
-        return "paquetes/{$paquete->solicitud_id}/{$paquete->id_paquete_sat}";
     }
 
     private function datos(Paquete $paquete): DatosPaquete
