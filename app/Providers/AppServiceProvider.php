@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -24,6 +25,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureDevCommands();
+    }
+
+    /**
+     * Procesos extra de `php artisan dev`. La cola ya viene por defecto; el scheduler hace falta
+     * para la Verificación cada 5 minutos.
+     */
+    protected function configureDevCommands(): void
+    {
+        DevCommands::artisan('schedule:work', 'scheduler');
     }
 
     /**
