@@ -1,0 +1,7 @@
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+    <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        <SolicitaDescargaEmitidosResponse xmlns="http://DescargaMasivaTerceros.sat.gob.mx">
+            <SolicitaDescargaEmitidosResult RfcSolicitante="EKU9003173C9" CodEstatus="5002" Mensaje="Se han agotado las solicitudes de por vida"/>
+        </SolicitaDescargaEmitidosResponse>
+    </s:Body>
+</s:Envelope>
