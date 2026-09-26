@@ -1,6 +1,6 @@
 <?php
 
-namespace DescargaSat\Fiel\Tests\Support;
+namespace Tests\Support;
 
 use DateTimeImmutable;
 use DateTimeZone;
