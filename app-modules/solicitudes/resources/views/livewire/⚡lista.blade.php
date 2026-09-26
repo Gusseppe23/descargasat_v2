@@ -1,7 +1,7 @@
 <?php
 
 use DescargaSat\SatAutenticacion\Contracts\Servicio;
-use DescargaSat\Solicitudes\Enums\EstadoSolicitud;
+use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Models\Solicitud;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;

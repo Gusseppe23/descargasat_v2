@@ -7,7 +7,7 @@ use DescargaSat\Fiel\Contracts\Fieles;
 use DescargaSat\SatAutenticacion\Contracts\Servicio;
 use DescargaSat\Solicitudes\Actions\PresentarSolicitud;
 use DescargaSat\Solicitudes\Enums\EstadoComprobante;
-use DescargaSat\Solicitudes\Enums\EstadoSolicitud;
+use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Enums\TipoComprobante;
 use DescargaSat\Solicitudes\Enums\TipoDescarga;
 use DescargaSat\Solicitudes\Enums\TipoSolicitud;
