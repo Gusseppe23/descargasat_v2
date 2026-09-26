@@ -27,6 +27,21 @@ final class WebClientFalso implements WebClientInterface
     }
 
     /**
+     * Respuesta de descarga del SAT con el ZIP indicado.
+     */
+    public function responderDescarga(string $zip, int $codigo = 5000, string $mensaje = 'Solicitud Aceptada'): self
+    {
+        $plantilla = (string) file_get_contents(base_path('tests/Fixtures/sat/descarga.xml'));
+        $this->respuestas[] = new Response(200, strtr($plantilla, [
+            '{codigo}' => (string) $codigo,
+            '{mensaje}' => $mensaje,
+            '{paquete}' => base64_encode($zip),
+        ]));
+
+        return $this;
+    }
+
+    /**
      * La siguiente petición falla como cuando no hay conexión con el SAT.
      */
     public function sinConexion(): self

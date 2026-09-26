@@ -6,9 +6,9 @@ use Carbon\CarbonImmutable;
 use DescargaSat\SatAutenticacion\Contracts\Servicio;
 
 /**
- * Una Solicitud que todavía no tiene estado final, con lo necesario para verificarla.
+ * Lo que otros módulos necesitan de una Solicitud para hablar con el SAT sobre ella.
  */
-final readonly class SolicitudPendiente
+final readonly class DatosSolicitud
 {
     public function __construct(
         public int $id,

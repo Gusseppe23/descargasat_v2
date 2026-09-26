@@ -5,7 +5,7 @@ namespace DescargaSat\Verificacion\Console;
 use DescargaSat\SatAutenticacion\Contracts\ConexionSat;
 use DescargaSat\SatAutenticacion\Contracts\FielNoVigente;
 use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
-use DescargaSat\Solicitudes\Contracts\SolicitudesPendientes;
+use DescargaSat\Solicitudes\Contracts\Solicitudes;
 use DescargaSat\Verificacion\Actions\VerificarSolicitud;
 use Illuminate\Console\Command;
 use PhpCfdi\SatWsDescargaMasiva\Service;
@@ -16,7 +16,7 @@ class VerificarSolicitudes extends Command
 
     protected $description = 'Pregunta al SAT por las Solicitudes que todavía no tienen estado final';
 
-    public function handle(SolicitudesPendientes $solicitudes, ConexionSat $conexionSat, VerificarSolicitud $verificarSolicitud): int
+    public function handle(Solicitudes $solicitudes, ConexionSat $conexionSat, VerificarSolicitud $verificarSolicitud): int
     {
         /** @var array<string, Service> $servicios Un Service por Fiel y Servicio en cada vuelta. */
         $servicios = [];

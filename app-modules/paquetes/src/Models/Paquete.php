@@ -14,10 +14,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $solicitud_id
  * @property string $id_paquete_sat
  * @property EstadoPaquete $estado
+ * @property string|null $ultimo_problema
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['solicitud_id', 'id_paquete_sat', 'estado'])]
+#[Fillable(['solicitud_id', 'id_paquete_sat', 'estado', 'ultimo_problema'])]
 class Paquete extends Model
 {
     /** @use HasFactory<PaqueteFactory> */
