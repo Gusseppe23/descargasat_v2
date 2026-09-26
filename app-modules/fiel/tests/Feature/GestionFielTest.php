@@ -4,11 +4,11 @@ use App\Models\User;
 use DescargaSat\Fiel\Contracts\Fieles;
 use DescargaSat\Fiel\Contracts\UsoDeFiel;
 use DescargaSat\Fiel\Models\Fiel;
-use DescargaSat\Fiel\Tests\Support\CertificadoDePrueba;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Tests\Support\CertificadoDePrueba;
 
 test('guests are redirected to the login page', function () {
     $this->get('/fiel')->assertRedirect(route('login'));

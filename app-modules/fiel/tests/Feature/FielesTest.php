@@ -4,8 +4,8 @@ use App\Models\User;
 use DescargaSat\Fiel\Actions\RegistrarFiel;
 use DescargaSat\Fiel\Contracts\Fieles;
 use DescargaSat\Fiel\Models\Fiel;
-use DescargaSat\Fiel\Tests\Support\CertificadoDePrueba;
 use Illuminate\Support\Facades\Storage;
+use Tests\Support\CertificadoDePrueba;
 
 test('there is no active fiel when none has been activated', function () {
     Fiel::factory()->create();
