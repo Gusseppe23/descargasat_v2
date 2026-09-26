@@ -1,44 +1,16 @@
 <?php
 
-use DescargaSat\Fiel\Contracts\DatosFiel;
-use DescargaSat\Fiel\Contracts\Fieles;
 use DescargaSat\SatAutenticacion\Contracts\ConexionSat;
 use DescargaSat\SatAutenticacion\Contracts\FielNoVigente;
 use DescargaSat\SatAutenticacion\Contracts\Servicio;
-use PhpCfdi\Credentials\Credential;
 use PhpCfdi\SatWsDescargaMasiva\WebClient\WebClientInterface;
 use Tests\Support\CertificadoDePrueba;
+use Tests\Support\FielesFalsas;
 use Tests\Support\WebClientFalso;
-
-/**
- * Sustituye el contrato Fieles del módulo fiel por uno que devuelve la credencial de prueba.
- */
-function usarFiel(CertificadoDePrueba $certificado): void
-{
-    app()->instance(Fieles::class, new class($certificado) implements Fieles
-    {
-        public function __construct(private CertificadoDePrueba $certificado) {}
-
-        public function activa(): ?DatosFiel
-        {
-            return null;
-        }
-
-        public function porId(int $id): ?DatosFiel
-        {
-            return null;
-        }
-
-        public function credencial(int $id): Credential
-        {
-            return Credential::create($this->certificado->cer, $this->certificado->key, $this->certificado->contrasena);
-        }
-    });
-}
 
 test('authenticates against the cfdi service with the certificate of the fiel', function () {
     $certificado = CertificadoDePrueba::fiel();
-    usarFiel($certificado);
+    FielesFalsas::usar($certificado);
     $webClient = (new WebClientFalso)->responder('autenticacion.xml');
     app()->instance(WebClientInterface::class, $webClient);
 
@@ -51,7 +23,7 @@ test('authenticates against the cfdi service with the certificate of the fiel', 
 });
 
 test('authenticates against the retenciones service when asked for retenciones', function () {
-    usarFiel(CertificadoDePrueba::fiel());
+    FielesFalsas::usar(CertificadoDePrueba::fiel());
     $webClient = (new WebClientFalso)->responder('autenticacion.xml');
     app()->instance(WebClientInterface::class, $webClient);
 
@@ -62,7 +34,7 @@ test('authenticates against the retenciones service when asked for retenciones',
 
 test('refuses to connect with an expired fiel without contacting the sat', function () {
     $certificado = CertificadoDePrueba::fiel();
-    usarFiel($certificado);
+    FielesFalsas::usar($certificado);
     $webClient = new WebClientFalso;
     app()->instance(WebClientInterface::class, $webClient);
     $this->travel(5)->years();
