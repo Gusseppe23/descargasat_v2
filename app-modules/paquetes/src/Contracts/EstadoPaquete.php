@@ -12,6 +12,14 @@ enum EstadoPaquete: string
     case Extraido = 'extraido';
     case Fallido = 'fallido';
 
+    /**
+     * El Paquete todavía se está descargando o extrayendo.
+     */
+    public function enCurso(): bool
+    {
+        return in_array($this, [self::Pendiente, self::Descargado], true);
+    }
+
     public function etiqueta(): string
     {
         return match ($this) {

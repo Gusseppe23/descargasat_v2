@@ -35,4 +35,20 @@ class Paquete extends Model
             'estado' => EstadoPaquete::class,
         ];
     }
+
+    /**
+     * Carpeta del Contenido del Paquete en el disco local.
+     */
+    public function carpeta(): string
+    {
+        return "paquetes/{$this->solicitud_id}/{$this->id_paquete_sat}";
+    }
+
+    /**
+     * El ZIP se guarda junto a su carpeta, con el mismo nombre.
+     */
+    public function rutaZip(): string
+    {
+        return $this->carpeta().'.zip';
+    }
 }

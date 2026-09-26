@@ -14,7 +14,7 @@ class SolicitudesEnCursoDeFiel implements UsoDeFiel
     public function tieneSolicitudesEnCurso(int $fielId): bool
     {
         return Solicitud::where('fiel_id', $fielId)
-            ->whereIn('estado', [EstadoSolicitud::Aceptada, EstadoSolicitud::EnProceso, EstadoSolicitud::Terminada])
+            ->whereIn('estado', array_filter(EstadoSolicitud::cases(), fn (EstadoSolicitud $estado): bool => $estado->enCurso()))
             ->exists();
     }
 }

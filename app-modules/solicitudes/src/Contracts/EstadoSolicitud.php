@@ -17,6 +17,14 @@ enum EstadoSolicitud: string
     case Vencida = 'vencida';
     case Abandonada = 'abandonada';
 
+    /**
+     * Sin estado final: el SAT o la descarga todavía pueden cambiarla.
+     */
+    public function enCurso(): bool
+    {
+        return in_array($this, [self::Aceptada, self::EnProceso, self::Terminada], true);
+    }
+
     public function etiqueta(): string
     {
         return match ($this) {
