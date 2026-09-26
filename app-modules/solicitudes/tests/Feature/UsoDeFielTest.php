@@ -1,7 +1,7 @@
 <?php
 
 use DescargaSat\Fiel\Contracts\UsoDeFiel;
-use DescargaSat\Solicitudes\Enums\EstadoSolicitud;
+use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Models\Solicitud;
 
 test('a fiel with a solicitud still in progress is in use', function (EstadoSolicitud $estado) {

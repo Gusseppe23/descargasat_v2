@@ -5,9 +5,9 @@ namespace DescargaSat\Solicitudes\Models;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use DescargaSat\SatAutenticacion\Contracts\Servicio;
+use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Database\Factories\SolicitudFactory;
 use DescargaSat\Solicitudes\Enums\EstadoComprobante;
-use DescargaSat\Solicitudes\Enums\EstadoSolicitud;
 use DescargaSat\Solicitudes\Enums\TipoComprobante;
 use DescargaSat\Solicitudes\Enums\TipoDescarga;
 use DescargaSat\Solicitudes\Enums\TipoSolicitud;
@@ -32,6 +32,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property EstadoSolicitud $estado
  * @property int|null $codigo_sat
  * @property string|null $mensaje_sat
+ * @property CarbonImmutable|null $verificada_el
+ * @property string|null $ultimo_problema
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property-read User|null $presentadaPor
@@ -39,7 +41,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Table('solicitudes')]
 #[Fillable([
     'fiel_id', 'presentada_por_id', 'servicio', 'fecha_inicio', 'fecha_fin', 'tipo_descarga', 'tipo_solicitud',
-    'tipo_comprobante', 'estado_comprobante', 'id_solicitud_sat', 'estado', 'codigo_sat', 'mensaje_sat',
+    'tipo_comprobante', 'estado_comprobante', 'id_solicitud_sat', 'estado', 'codigo_sat', 'mensaje_sat', 'verificada_el', 'ultimo_problema',
 ])]
 class Solicitud extends Model
 {
@@ -63,6 +65,7 @@ class Solicitud extends Model
             'estado_comprobante' => EstadoComprobante::class,
             'estado' => EstadoSolicitud::class,
             'codigo_sat' => 'integer',
+            'verificada_el' => 'datetime',
         ];
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace DescargaSat\Solicitudes\Enums;
+namespace DescargaSat\Solicitudes\Contracts;
 
 /**
  * Estados de una Solicitud; ver CONTEXT.md.

@@ -4,8 +4,8 @@ namespace DescargaSat\Solicitudes\Database\Factories;
 
 use App\Models\User;
 use DescargaSat\SatAutenticacion\Contracts\Servicio;
+use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Enums\EstadoComprobante;
-use DescargaSat\Solicitudes\Enums\EstadoSolicitud;
 use DescargaSat\Solicitudes\Enums\TipoDescarga;
 use DescargaSat\Solicitudes\Enums\TipoSolicitud;
 use DescargaSat\Solicitudes\Models\Solicitud;

@@ -1,0 +1,7 @@
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+    <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        <VerificaSolicitudDescargaResponse xmlns="http://DescargaMasivaTerceros.sat.gob.mx">
+            <VerificaSolicitudDescargaResult CodEstatus="300" EstadoSolicitud="0" CodigoEstadoSolicitud="0" NumeroCFDIs="0" Mensaje="Usuario No Válido"></VerificaSolicitudDescargaResult>
+        </VerificaSolicitudDescargaResponse>
+    </s:Body>
+</s:Envelope>

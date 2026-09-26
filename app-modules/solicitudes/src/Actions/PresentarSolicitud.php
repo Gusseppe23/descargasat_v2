@@ -5,7 +5,7 @@ namespace DescargaSat\Solicitudes\Actions;
 use App\Models\User;
 use DescargaSat\SatAutenticacion\Contracts\ConexionSat;
 use DescargaSat\SatAutenticacion\Contracts\FielNoVigente;
-use DescargaSat\Solicitudes\Enums\EstadoSolicitud;
+use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Models\Solicitud;
 use DescargaSat\Solicitudes\Support\ParametrosSolicitud;
 use Illuminate\Validation\ValidationException;

@@ -3,7 +3,7 @@
 namespace DescargaSat\Solicitudes\Services;
 
 use DescargaSat\Fiel\Contracts\UsoDeFiel;
-use DescargaSat\Solicitudes\Enums\EstadoSolicitud;
+use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Models\Solicitud;
 
 /**
