@@ -1,0 +1,10 @@
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+    <s:Header>
+        <h:respuesta CodEstatus="{codigo}" Mensaje="{mensaje}" xmlns:h="http://DescargaMasivaTerceros.sat.gob.mx" xmlns="http://DescargaMasivaTerceros.sat.gob.mx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+    </s:Header>
+    <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        <RespuestaDescargaMasivaTercerosSalida xmlns="http://DescargaMasivaTerceros.sat.gob.mx">
+            <Paquete>{paquete}</Paquete>
+        </RespuestaDescargaMasivaTercerosSalida>
+    </s:Body>
+</s:Envelope>

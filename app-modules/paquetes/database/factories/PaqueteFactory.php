@@ -24,4 +24,12 @@ class PaqueteFactory extends Factory
             'estado' => EstadoPaquete::Pendiente,
         ];
     }
+
+    /**
+     * Paquete ya descargado y extraído.
+     */
+    public function extraido(): static
+    {
+        return $this->state(fn (): array => ['estado' => EstadoPaquete::Extraido]);
+    }
 }

@@ -3,9 +3,9 @@
 namespace DescargaSat\Verificacion\Actions;
 
 use DescargaSat\Paquetes\Contracts\Paquetes;
+use DescargaSat\Solicitudes\Contracts\DatosSolicitud;
 use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
-use DescargaSat\Solicitudes\Contracts\SolicitudesPendientes;
-use DescargaSat\Solicitudes\Contracts\SolicitudPendiente;
+use DescargaSat\Solicitudes\Contracts\Solicitudes;
 use PhpCfdi\SatWsDescargaMasiva\Service;
 use PhpCfdi\SatWsDescargaMasiva\Services\Verify\VerifyResult;
 use PhpCfdi\SatWsDescargaMasiva\WebClient\Exceptions\WebClientException;
@@ -18,7 +18,7 @@ class VerificarSolicitud
     public const HORAS_PARA_ABANDONAR = 72;
 
     public function __construct(
-        private SolicitudesPendientes $solicitudes,
+        private Solicitudes $solicitudes,
         private Paquetes $paquetes,
     ) {}
 
@@ -27,7 +27,7 @@ class VerificarSolicitud
      *
      * Si el SAT no responde bien, el estado no cambia: se anota el problema y se reintenta en la siguiente vuelta.
      */
-    public function __invoke(SolicitudPendiente $solicitud, Service $servicio): void
+    public function __invoke(DatosSolicitud $solicitud, Service $servicio): void
     {
         try {
             $resultado = $servicio->verify($solicitud->idSolicitudSat);
@@ -66,7 +66,7 @@ class VerificarSolicitud
         }
     }
 
-    private function abandonarSiSeAgotoElPlazo(SolicitudPendiente $solicitud): void
+    private function abandonarSiSeAgotoElPlazo(DatosSolicitud $solicitud): void
     {
         if ($solicitud->presentadaEl->addHours(self::HORAS_PARA_ABANDONAR)->isFuture()) {
             return;

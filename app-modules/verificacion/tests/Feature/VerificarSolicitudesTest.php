@@ -152,6 +152,7 @@ test('does not abandon a solicitud that the sat finished after 72 hours', functi
     $this->freezeTime();
     satVerifica('verificacion-terminada.xml');
     $solicitud = Solicitud::factory()->create(['fiel_id' => 1, 'created_at' => now()->subHours(73)]);
+    Event::fake([PaquetesRegistrados::class]);
 
     $this->artisan('sat:verificar')->assertSuccessful();
 
