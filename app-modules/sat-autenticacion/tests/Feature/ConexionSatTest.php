@@ -43,3 +43,15 @@ test('refuses to connect with an expired fiel without contacting the sat', funct
         ->toThrow(FielNoVigente::class, 'La Fiel 30001000000500003416 venció el '.$certificado->vigenteHasta->format('d/m/Y').'.')
         ->and($webClient->peticiones)->toBeEmpty();
 });
+
+test('refuses to connect with a fiel that is not valid yet without contacting the sat', function () {
+    $certificado = CertificadoDePrueba::fiel();
+    FielesFalsas::usar($certificado);
+    $webClient = new WebClientFalso;
+    app()->instance(WebClientInterface::class, $webClient);
+    $this->travel(-1)->days();
+
+    expect(fn () => app(ConexionSat::class)->servicio(1, Servicio::Cfdi))
+        ->toThrow(FielNoVigente::class, 'La Fiel 30001000000500003416 entra en vigor el '.$certificado->vigenteDesde->format('d/m/Y').'.')
+        ->and($webClient->peticiones)->toBeEmpty();
+});

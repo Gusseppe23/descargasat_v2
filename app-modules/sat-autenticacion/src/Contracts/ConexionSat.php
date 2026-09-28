@@ -14,7 +14,7 @@ interface ConexionSat
      *
      * El Service se autentica solo la primera vez que se usa y reutiliza su token mientras sea válido.
      *
-     * @throws FielNoVigente cuando la Fiel ya venció; no se contacta al SAT.
+     * @throws FielNoVigente cuando la Fiel ya venció o todavía no entra en vigor; no se contacta al SAT.
      */
     public function servicio(int $fielId, Servicio $servicio): Service;
 }
