@@ -1,0 +1,58 @@
+# syntax=docker/dockerfile:1.7
+# Imagen de producción de descarga_sat.
+# La misma imagen corre la web (Apache), el scheduler y el worker de la cola; ver compose.produccion.yaml.
+
+ARG PHP_VERSION=8.5
+ARG NODE_MAJOR=24
+
+# 1. PHP con Apache y las extensiones que usan Laravel y phpcfdi/sat-ws-descarga-masiva
+FROM php:${PHP_VERSION}-apache AS php
+
+ENV TZ=America/Mexico_City \
+    APACHE_DOCUMENT_ROOT=/var/www/html/public
+
+COPY --from=mlocati/php-extension-installer:latest /usr/bin/install-php-extensions /usr/local/bin/
+# OPcache ya viene incluido en PHP 8.5.
+RUN install-php-extensions zip soap intl bcmath pcntl
+
+RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
+ && printf '%s\n' \
+      'date.timezone = America/Mexico_City' \
+      'memory_limit = 512M' \
+      'upload_max_filesize = 20M' \
+      'post_max_size = 25M' \
+      'expose_php = Off' \
+    > "$PHP_INI_DIR/conf.d/zz-produccion.ini" \
+ && sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
+ && sed -ri 's!AllowOverride None!AllowOverride All!g' /etc/apache2/apache2.conf \
+ && a2enmod rewrite
+
+WORKDIR /var/www/html
+
+# 2. Código y dependencias de PHP, sin las de desarrollo
+FROM php AS app
+
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+COPY . .
+# storage/ no se copia (ver el .dockerignore); package:discover necesita su estructura al arrancar Laravel.
+RUN mkdir -p storage/app/private storage/app/public storage/framework/cache/data \
+      storage/framework/sessions storage/framework/views storage/logs \
+ && composer install --no-dev --optimize-autoloader --no-interaction --no-progress \
+ && rm /usr/local/bin/composer
+
+# 3. CSS y JS; Tailwind lee las vistas de Flux y de Laravel dentro de vendor
+FROM node:${NODE_MAJOR} AS assets
+
+WORKDIR /var/www/html
+COPY --from=app /var/www/html .
+RUN npm ci --no-audit --no-fund && npm run build
+
+# 4. Imagen final
+FROM app
+
+COPY --from=assets /var/www/html/public/build public/build
+
+# storage/ se reemplaza por el volumen "datos"; Docker copia esta estructura la primera vez que lo crea.
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+EXPOSE 80
