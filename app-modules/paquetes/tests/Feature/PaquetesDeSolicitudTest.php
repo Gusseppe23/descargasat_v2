@@ -34,7 +34,8 @@ test('retrying a fallido paquete puts it back as pendiente and queues only its d
 
     Livewire::test('paquetes::de-solicitud', ['solicitudId' => 5])
         ->call('reintentar', $fallido->id)
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        ->assertDispatched('paquete-reintentado');
 
     $fallido->refresh();
     expect($fallido->estado)->toBe(EstadoPaquete::Pendiente)

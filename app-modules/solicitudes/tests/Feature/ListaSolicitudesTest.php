@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\User;
+use DescargaSat\Paquetes\Contracts\EstadoPaquete;
+use DescargaSat\Paquetes\Models\Paquete;
 use DescargaSat\SatAutenticacion\Contracts\Servicio;
 use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Enums\EstadoComprobante;
@@ -48,8 +50,11 @@ test('lists the solicitudes with their parameters, state and who presented them'
         ]);
 });
 
-test('refreshes itself every 15 seconds only while a solicitud is in progress', function (EstadoSolicitud $estado, bool $refresca) {
-    Solicitud::factory()->create(['estado' => $estado]);
+test('refreshes itself every 15 seconds only while a solicitud or its paquetes are in progress', function (EstadoSolicitud $estado, array $estadosPaquetes, bool $refresca) {
+    $solicitud = Solicitud::factory()->create(['estado' => $estado]);
+    foreach ($estadosPaquetes as $estadoPaquete) {
+        Paquete::factory()->create(['solicitud_id' => $solicitud->id, 'estado' => $estadoPaquete]);
+    }
     Solicitud::factory()->create(['estado' => EstadoSolicitud::Descargada]);
 
     $this->actingAs(User::factory()->create());
@@ -58,11 +63,13 @@ test('refreshes itself every 15 seconds only while a solicitud is in progress', 
 
     $refresca ? $lista->assertSeeHtml('wire:poll.15s') : $lista->assertDontSeeHtml('wire:poll');
 })->with([
-    'aceptada' => [EstadoSolicitud::Aceptada, true],
-    'en proceso' => [EstadoSolicitud::EnProceso, true],
-    'terminada' => [EstadoSolicitud::Terminada, true],
-    'sin resultados' => [EstadoSolicitud::SinResultados, false],
-    'rechazada' => [EstadoSolicitud::Rechazada, false],
+    'aceptada' => [EstadoSolicitud::Aceptada, [], true],
+    'en proceso' => [EstadoSolicitud::EnProceso, [], true],
+    'terminada con un paquete pendiente' => [EstadoSolicitud::Terminada, [EstadoPaquete::Extraido, EstadoPaquete::Pendiente], true],
+    'terminada con un paquete descargado' => [EstadoSolicitud::Terminada, [EstadoPaquete::Descargado], true],
+    'terminada con paquetes extraidos o fallidos' => [EstadoSolicitud::Terminada, [EstadoPaquete::Extraido, EstadoPaquete::Fallido], false],
+    'sin resultados' => [EstadoSolicitud::SinResultados, [], false],
+    'rechazada' => [EstadoSolicitud::Rechazada, [], false],
 ]);
 
 test('shows the last verification attempt and links each solicitud to its detail', function () {
