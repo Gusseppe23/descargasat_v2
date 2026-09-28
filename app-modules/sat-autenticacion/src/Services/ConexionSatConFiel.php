@@ -27,11 +27,18 @@ class ConexionSatConFiel implements ConexionSat
     {
         $credencial = $this->fieles->credencial($fielId);
         $certificado = $credencial->certificate();
+        $numeroCertificado = $certificado->serialNumber()->bytes();
+
+        if (now()->lessThan($certificado->validFromDateTime())) {
+            $entraEnVigorEl = CarbonImmutable::instance($certificado->validFromDateTime())->format('d/m/Y');
+
+            throw new FielNoVigente("La Fiel {$numeroCertificado} entra en vigor el {$entraEnVigorEl}.");
+        }
 
         if (! $certificado->validOn(now()->toDateTimeImmutable())) {
             $venceEl = CarbonImmutable::instance($certificado->validToDateTime())->format('d/m/Y');
 
-            throw new FielNoVigente("La Fiel {$certificado->serialNumber()->bytes()} venció el {$venceEl}.");
+            throw new FielNoVigente("La Fiel {$numeroCertificado} venció el {$venceEl}.");
         }
 
         $fiel = new Fiel($credencial);

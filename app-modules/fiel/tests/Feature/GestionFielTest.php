@@ -108,6 +108,25 @@ test('rejects an expired fiel', function () {
         ->assertSee('Todavía no hay ninguna Fiel guardada.');
 });
 
+test('rejects a fiel that is not valid yet', function () {
+    Storage::fake('local');
+    $fiel = CertificadoDePrueba::fiel();
+    [$cer, $key] = $fiel->comoArchivos();
+
+    $this->actingAs(User::factory()->create());
+
+    $pantalla = Livewire::test('fiel::gestion')
+        ->set('cer', $cer)
+        ->set('key', $key)
+        ->set('contrasena', $fiel->contrasena);
+
+    $this->travel(-1)->days();
+
+    $pantalla->call('subir')
+        ->assertHasErrors(['cer' => 'La FIEL entra en vigor el '.$fiel->vigenteDesde->format('d/m/Y').'.'])
+        ->assertSee('Todavía no hay ninguna Fiel guardada.');
+});
+
 test('rejects a fiel from a different rfc than the stored ones', function () {
     Storage::fake('local');
     Fiel::factory()->deRfc('XAXX010101000')->create();

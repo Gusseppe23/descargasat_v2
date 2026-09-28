@@ -32,6 +32,12 @@ class RegistrarFiel
             throw ValidationException::withMessages(['cer' => 'El certificado es un CSD (sello digital), no una FIEL.']);
         }
 
+        if (now()->lessThan($certificado->validFromDateTime())) {
+            $entraEnVigorEl = Carbon::instance($certificado->validFromDateTime())->format('d/m/Y');
+
+            throw ValidationException::withMessages(['cer' => "La FIEL entra en vigor el {$entraEnVigorEl}."]);
+        }
+
         if (! $certificado->validOn(now()->toDateTimeImmutable())) {
             $venceEl = Carbon::instance($certificado->validToDateTime())->format('d/m/Y');
 
