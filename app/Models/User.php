@@ -55,4 +55,12 @@ class User extends Authenticatable
             ? Str::substr($initials, 0, 1).Str::substr($initials, -1)
             : $initials;
     }
+
+    /**
+     * El registro solo está abierto para crear el primer usuario; después nadie más puede registrarse.
+     */
+    public static function registroAbierto(): bool
+    {
+        return ! static::query()->exists();
+    }
 }

@@ -13,12 +13,14 @@ class CreateNewUser implements CreatesNewUsers
     use PasswordValidationRules, ProfileValidationRules;
 
     /**
-     * Validate and create a newly registered user.
+     * Validate and create a newly registered user; only the first one, see User::registroAbierto().
      *
      * @param  array<string, string>  $input
      */
     public function create(array $input): User
     {
+        abort_unless(User::registroAbierto(), 404);
+
         Validator::make($input, [
             ...$this->profileRules(),
             'password' => $this->passwordRules(),

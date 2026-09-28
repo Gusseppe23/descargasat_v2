@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Laravel\Fortify\Features;
 
 beforeEach(function () {
@@ -24,4 +25,32 @@ test('new users can register', function () {
         ->assertRedirect(route('dashboard', absolute: false));
 
     $this->assertAuthenticated();
+});
+
+test('registration screen is not found once a user exists', function () {
+    User::factory()->create();
+
+    $this->get(route('register'))->assertNotFound();
+});
+
+test('nobody else can register once a user exists', function () {
+    User::factory()->create();
+
+    $this->post(route('register.store'), [
+        'name' => 'Otra Persona',
+        'email' => 'otra@example.com',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertNotFound();
+
+    $this->assertGuest();
+    expect(User::count())->toBe(1);
+});
+
+test('login screen offers to sign up only while there are no users', function () {
+    $this->get(route('login'))->assertSee(route('register'));
+
+    User::factory()->create();
+
+    $this->get(route('login'))->assertDontSee(route('register'));
 });
