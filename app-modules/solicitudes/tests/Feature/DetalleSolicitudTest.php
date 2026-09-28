@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\User;
+use DescargaSat\Paquetes\Contracts\EstadoPaquete;
+use DescargaSat\Paquetes\Models\Paquete;
 use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Models\Solicitud;
 use Livewire\Livewire;
@@ -33,8 +35,11 @@ test('shows the solicitud with its last verification attempt and embeds its paqu
         ->assertSeeLivewire('paquetes::de-solicitud');
 });
 
-test('refreshes itself every 15 seconds only while the solicitud is in progress', function (EstadoSolicitud $estado, bool $refresca) {
+test('refreshes itself every 15 seconds only while the solicitud or its paquetes are in progress', function (EstadoSolicitud $estado, array $estadosPaquetes, bool $refresca) {
     $solicitud = Solicitud::factory()->create(['estado' => $estado]);
+    foreach ($estadosPaquetes as $estadoPaquete) {
+        Paquete::factory()->create(['solicitud_id' => $solicitud->id, 'estado' => $estadoPaquete]);
+    }
 
     $this->actingAs(User::factory()->create());
 
@@ -42,8 +47,27 @@ test('refreshes itself every 15 seconds only while the solicitud is in progress'
 
     $refresca ? $detalle->assertSeeHtml('wire:poll.15s') : $detalle->assertDontSeeHtml('wire:poll');
 })->with([
-    'en proceso' => [EstadoSolicitud::EnProceso, true],
-    'terminada' => [EstadoSolicitud::Terminada, true],
-    'descargada' => [EstadoSolicitud::Descargada, false],
-    'vencida' => [EstadoSolicitud::Vencida, false],
+    'en proceso' => [EstadoSolicitud::EnProceso, [], true],
+    'terminada con un paquete pendiente' => [EstadoSolicitud::Terminada, [EstadoPaquete::Extraido, EstadoPaquete::Pendiente], true],
+    'terminada con un paquete descargado' => [EstadoSolicitud::Terminada, [EstadoPaquete::Descargado], true],
+    'terminada con paquetes extraidos o fallidos' => [EstadoSolicitud::Terminada, [EstadoPaquete::Extraido, EstadoPaquete::Fallido], false],
+    'descargada' => [EstadoSolicitud::Descargada, [EstadoPaquete::Extraido], false],
+    'vencida' => [EstadoSolicitud::Vencida, [], false],
 ]);
+
+test('starts refreshing again when one of its paquetes is retried', function () {
+    $solicitud = Solicitud::factory()->create(['estado' => EstadoSolicitud::Terminada]);
+    $paquete = Paquete::factory()->fallido()->create(['solicitud_id' => $solicitud->id]);
+
+    $this->actingAs(User::factory()->create());
+
+    $detalle = Livewire::test('solicitudes::detalle', ['solicitud' => $solicitud])
+        ->assertDontSeeHtml('wire:poll');
+
+    expect($detalle->effects['listeners'] ?? [])->toContain('paquete-reintentado');
+
+    $paquete->update(['estado' => EstadoPaquete::Pendiente]);
+
+    $detalle->dispatch('paquete-reintentado')
+        ->assertSeeHtml('wire:poll.15s');
+});

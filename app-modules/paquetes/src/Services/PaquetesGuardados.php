@@ -48,6 +48,15 @@ class PaquetesGuardados implements Paquetes
             && ! Paquete::where('solicitud_id', $solicitudId)->where('estado', '!=', EstadoPaquete::Extraido)->exists();
     }
 
+    public function conDescargaEnCurso(array $solicitudIds): array
+    {
+        return Paquete::whereIn('solicitud_id', $solicitudIds)
+            ->whereIn('estado', array_filter(EstadoPaquete::cases(), fn (EstadoPaquete $estado): bool => $estado->enCurso()))
+            ->distinct()
+            ->pluck('solicitud_id')
+            ->all();
+    }
+
     public function anotarProblema(int $id, ?string $problema): void
     {
         Paquete::whereKey($id)->update([

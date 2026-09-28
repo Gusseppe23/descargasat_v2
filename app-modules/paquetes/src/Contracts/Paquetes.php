@@ -30,6 +30,14 @@ interface Paquetes
     public function todosExtraidos(int $solicitudId): bool;
 
     /**
+     * De las Solicitudes indicadas, las que tienen algún Paquete que todavía se está descargando o extrayendo.
+     *
+     * @param  list<int>  $solicitudIds
+     * @return list<int>
+     */
+    public function conDescargaEnCurso(array $solicitudIds): array;
+
+    /**
      * Anota el último problema al descargar o extraer el Paquete, o null para borrarlo.
      */
     public function anotarProblema(int $id, ?string $problema): void;

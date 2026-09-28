@@ -3,6 +3,7 @@
 use DescargaSat\SatAutenticacion\Contracts\Servicio;
 use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Models\Solicitud;
+use DescargaSat\Solicitudes\Support\RefrescoDeSolicitudes;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -20,9 +21,15 @@ new #[Title('Solicitudes')] class extends Component {
     {
         return Solicitud::with('presentadaPor')->latest()->latest('id')->paginate(20);
     }
+
+    #[Computed]
+    public function debeRefrescarse(): bool
+    {
+        return app(RefrescoDeSolicitudes::class)->debeRefrescarse($this->solicitudes);
+    }
 }; ?>
 
-<section class="w-full space-y-6" @if ($this->solicitudes->contains(fn (Solicitud $solicitud): bool => $solicitud->estado->enCurso())) wire:poll.15s @endif>
+<section class="w-full space-y-6" @if ($this->debeRefrescarse) wire:poll.15s @endif>
     <div class="flex items-center justify-between">
         <flux:heading size="xl" level="1">{{ __('Solicitudes') }}</flux:heading>
         <flux:button variant="primary" :href="route('solicitudes.create')" wire:navigate>{{ __('Nueva solicitud') }}</flux:button>

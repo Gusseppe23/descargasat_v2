@@ -11,13 +11,15 @@ new class extends Component {
     public int $solicitudId;
 
     /**
-     * Vuelve a encolar la descarga de un Paquete Fallido de esta Solicitud.
+     * Vuelve a encolar la descarga de un Paquete Fallido de esta Solicitud y avisa a la pantalla que lo contiene.
      */
     public function reintentar(int $paqueteId, ReintentarPaquete $reintentarPaquete): void
     {
         $reintentarPaquete(Paquete::where('solicitud_id', $this->solicitudId)->findOrFail($paqueteId));
 
         unset($this->paquetes);
+
+        $this->dispatch('paquete-reintentado');
     }
 
     /**

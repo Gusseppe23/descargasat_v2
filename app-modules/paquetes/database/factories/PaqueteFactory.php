@@ -26,6 +26,14 @@ class PaqueteFactory extends Factory
     }
 
     /**
+     * Paquete con su ZIP descargado, todavía sin extraer.
+     */
+    public function descargado(): static
+    {
+        return $this->state(fn (): array => ['estado' => EstadoPaquete::Descargado]);
+    }
+
+    /**
      * Paquete ya descargado y extraído.
      */
     public function extraido(): static

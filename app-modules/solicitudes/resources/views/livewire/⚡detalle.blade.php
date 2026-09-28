@@ -2,14 +2,32 @@
 
 use DescargaSat\SatAutenticacion\Contracts\Servicio;
 use DescargaSat\Solicitudes\Models\Solicitud;
+use DescargaSat\Solicitudes\Support\RefrescoDeSolicitudes;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Solicitud')] class extends Component {
     public Solicitud $solicitud;
+
+    #[Computed]
+    public function debeRefrescarse(): bool
+    {
+        return app(RefrescoDeSolicitudes::class)->debeRefrescarse([$this->solicitud]);
+    }
+
+    /**
+     * Vuelve a dibujar la Solicitud para que retome el refresco mientras se descarga el Paquete reintentado.
+     */
+    #[On('paquete-reintentado')]
+    public function refrescar(): void
+    {
+        $this->solicitud->refresh();
+    }
 }; ?>
 
-<section class="w-full space-y-8" @if ($solicitud->estado->enCurso()) wire:poll.15s @endif>
+<section class="w-full space-y-8" @if ($this->debeRefrescarse) wire:poll.15s @endif>
     <div class="flex items-center justify-between">
         <flux:heading size="xl" level="1">{{ __('Solicitud') }}</flux:heading>
         <flux:button :href="route('solicitudes.index')" wire:navigate icon="arrow-left">{{ __('Solicitudes') }}</flux:button>
