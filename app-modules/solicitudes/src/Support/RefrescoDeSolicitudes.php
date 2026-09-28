@@ -31,6 +31,25 @@ class RefrescoDeSolicitudes
             }
         }
 
-        return $terminadas !== [] && $this->paquetes->conDescargaEnCurso($terminadas) !== [];
+        if ($terminadas === []) {
+            return false;
+        }
+
+        if ($this->paquetes->conDescargaEnCurso($terminadas) !== []) {
+            return true;
+        }
+
+        return $this->cambiaronMientrasTanto($terminadas);
+    }
+
+    /**
+     * Si alguna de estas Solicitudes dejó de estar Terminada después de cargarla: su último Paquete terminó
+     * justo entre las dos lecturas y la pantalla necesita un refresco más para mostrarla Descargada.
+     *
+     * @param  list<int>  $terminadas
+     */
+    private function cambiaronMientrasTanto(array $terminadas): bool
+    {
+        return Solicitud::whereIn('id', $terminadas)->where('estado', '!=', EstadoSolicitud::Terminada)->exists();
     }
 }

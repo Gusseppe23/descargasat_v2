@@ -10,6 +10,7 @@ use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Contracts\Solicitudes;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 use PhpCfdi\SatWsDescargaMasiva\WebClient\Exceptions\WebClientException;
 use RuntimeException;
 use Throwable;
@@ -76,16 +77,29 @@ class DescargarPaquete implements ShouldQueue
         $paquetes->guardarZip($paquete->id, $resultado->getPackageContent());
 
         try {
-            $paquetes->extraer($paquete->id);
+            $this->extraerYMarcarDescargada($paquetes, $solicitudes, $paquete->id, $solicitud->id);
         } catch (PaqueteDanado $error) {
             throw $this->problema($paquetes, $error->getMessage(), $error);
         }
+    }
 
-        $paquetes->anotarProblema($paquete->id, null);
+    /**
+     * Extrae el Paquete y, si era el último, deja la Solicitud Descargada. Los cambios en la base de datos
+     * van en una transacción para que nadie vea el último Paquete Extraído con la Solicitud todavía Terminada;
+     * si algo falla, los archivos ya extraídos quedan en disco y el reintento los sobrescribe.
+     *
+     * @throws PaqueteDanado
+     */
+    private function extraerYMarcarDescargada(Paquetes $paquetes, Solicitudes $solicitudes, int $paqueteId, int $solicitudId): void
+    {
+        DB::transaction(function () use ($paquetes, $solicitudes, $paqueteId, $solicitudId): void {
+            $paquetes->extraer($paqueteId);
+            $paquetes->anotarProblema($paqueteId, null);
 
-        if ($paquetes->todosExtraidos($solicitud->id)) {
-            $solicitudes->cambiarEstado($solicitud->id, EstadoSolicitud::Descargada);
-        }
+            if ($paquetes->todosExtraidos($solicitudId)) {
+                $solicitudes->cambiarEstado($solicitudId, EstadoSolicitud::Descargada);
+            }
+        });
     }
 
     /**
