@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use DescargaSat\Paquetes\Contracts\EstadoPaquete;
+use DescargaSat\Paquetes\Contracts\Paquetes;
 use DescargaSat\Paquetes\Models\Paquete;
 use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Models\Solicitud;
@@ -69,5 +70,21 @@ test('starts refreshing again when one of its paquetes is retried', function () 
     $paquete->update(['estado' => EstadoPaquete::Pendiente]);
 
     $detalle->dispatch('paquete-reintentado')
+        ->assertSeeHtml('wire:poll.15s');
+});
+
+test('keeps refreshing when the download finishes while it is being drawn', function () {
+    $solicitud = Solicitud::factory()->create(['estado' => EstadoSolicitud::Terminada]);
+    $this->mock(Paquetes::class)
+        ->shouldReceive('conDescargaEnCurso')
+        ->andReturnUsing(function () use ($solicitud): array {
+            Solicitud::whereKey($solicitud->id)->update(['estado' => EstadoSolicitud::Descargada]);
+
+            return [];
+        });
+
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test('solicitudes::detalle', ['solicitud' => $solicitud])
         ->assertSeeHtml('wire:poll.15s');
 });

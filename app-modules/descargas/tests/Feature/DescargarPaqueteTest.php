@@ -3,7 +3,9 @@
 use DescargaSat\Descargas\Jobs\DescargarPaquete;
 use DescargaSat\Paquetes\Contracts\EstadoPaquete;
 use DescargaSat\Paquetes\Models\Paquete;
+use DescargaSat\Solicitudes\Contracts\DatosSolicitud;
 use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
+use DescargaSat\Solicitudes\Contracts\Solicitudes;
 use DescargaSat\Solicitudes\Models\Solicitud;
 use Illuminate\Support\Facades\Storage;
 use PhpCfdi\SatWsDescargaMasiva\WebClient\WebClientInterface;
@@ -67,6 +69,42 @@ test('marks the solicitud as descargada only when its last paquete is extracted'
 
     expect($despuesDelPrimero)->toBe(EstadoSolicitud::Terminada)
         ->and($solicitud->fresh()->estado)->toBe(EstadoSolicitud::Descargada);
+});
+
+test('rolls the last paquete back to descargado when the solicitud cannot be marked as descargada', function () {
+    Storage::fake('local');
+    FielesFalsas::usar();
+    satDescarga()->responderDescarga(ZipDePrueba::con(['uuid-1.xml' => '<cfdi:Comprobante/>']));
+    $paquete = paquetePendiente();
+    app()->instance(Solicitudes::class, new class(app(Solicitudes::class)) implements Solicitudes
+    {
+        public function __construct(private Solicitudes $solicitudes) {}
+
+        public function pendientes(): array
+        {
+            return $this->solicitudes->pendientes();
+        }
+
+        public function porId(int $id): ?DatosSolicitud
+        {
+            return $this->solicitudes->porId($id);
+        }
+
+        public function cambiarEstado(int $id, EstadoSolicitud $estado, ?string $mensaje = null): void
+        {
+            throw new RuntimeException('No se pudo guardar la Solicitud.');
+        }
+
+        public function anotarIntento(int $id, ?string $problema): void
+        {
+            $this->solicitudes->anotarIntento($id, $problema);
+        }
+    });
+
+    // Se llama a handle() directo: la cola síncrona de pruebas no reintenta y llamaría a failed() de inmediato.
+    expect(fn () => app()->call([new DescargarPaquete($paquete->id), 'handle']))->toThrow(RuntimeException::class, 'No se pudo guardar la Solicitud.')
+        ->and($paquete->fresh()->estado)->toBe(EstadoPaquete::Descargado)
+        ->and(Solicitud::find($paquete->solicitud_id)->estado)->toBe(EstadoSolicitud::Terminada);
 });
 
 test('fails so the queue retries it and records the problem when the download goes wrong', function (Closure $prepararSat, string $problema, EstadoPaquete $estado) {
