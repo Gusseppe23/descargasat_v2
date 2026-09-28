@@ -1,0 +1,37 @@
+# Producción de descarga_sat: la web, el scheduler y un solo worker de la cola.
+# Se levanta con ./desplegar.sh; ver la sección "Producción" del README.
+
+name: descarga-sat
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile.produccion
+  image: descarga-sat:produccion
+  env_file: .env.production
+  restart: unless-stopped
+  volumes:
+    # FIEL cifrada, ZIP y XML de los Paquetes, logs y la base SQLite (storage/app/database.sqlite)
+    - datos:/var/www/html/storage
+
+services:
+  web:
+    <<: *app
+    ports:
+      - "${PUERTO:-8080}:80"
+
+  scheduler:
+    <<: *app
+    user: www-data
+    command: ["php", "artisan", "schedule:work"]
+
+  worker:
+    <<: *app
+    user: www-data
+    # Un solo worker: con varios, dos descargas podrían cerrar a la vez la misma Solicitud (ver #21).
+    # --timeout debe ser menor que DB_QUEUE_RETRY_AFTER para que la cola no repita una descarga larga.
+    command: ["php", "artisan", "queue:work", "database", "--sleep=3", "--timeout=300", "--max-time=3600"]
+    stop_grace_period: 5m
+
+volumes:
+  datos:
