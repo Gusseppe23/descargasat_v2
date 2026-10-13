@@ -29,6 +29,30 @@ final class WebClientFalso implements WebClientCancelaciones
     }
 
     /**
+     * Acuse de ProcesarRespuesta del SAT (ejemplo 6.3) con los datos indicados.
+     */
+    public function responderAcuse(
+        string $uuid,
+        string $respuesta,
+        string $codigo = '1000',
+        string $estatus = '1005',
+        bool $sellado = true,
+    ): self {
+        $plantilla = (string) file_get_contents(base_path('tests/Fixtures/sat/cancelaciones-acuse.xml'));
+        $sello = '<Signature Id="SelloSAT" xmlns="http://www.w3.org/2000/09/xmldsig#"><SignatureValue>c2VsbG8tZGUtcHJ1ZWJh</SignatureValue></Signature>';
+
+        $this->respuestas[] = new Response(200, strtr($plantilla, [
+            '{codigo}' => $codigo,
+            '{respuesta}' => $respuesta,
+            '{uuid}' => $uuid,
+            '{estatus}' => $estatus,
+            '{sello}' => $sellado ? $sello : '',
+        ]));
+
+        return $this;
+    }
+
+    /**
      * Responde con el texto indicado tal cual, sin leerlo de un fixture.
      */
     public function responderTexto(string $cuerpo, int $estado = 200): self

@@ -2,7 +2,9 @@
 
 namespace DescargaSat\SatAutenticacion\Services;
 
+use DescargaSat\SatAutenticacion\Contracts\AcuseDeRespuesta;
 use DescargaSat\SatAutenticacion\Contracts\FaultDelSat;
+use DescargaSat\SatAutenticacion\Contracts\FolioDeAcuse;
 use DescargaSat\SatAutenticacion\Contracts\PeticionesPendientes;
 use DescargaSat\SatAutenticacion\Contracts\ProblemaConElSat;
 use DescargaSat\SatAutenticacion\Contracts\RespuestaNoXml;
@@ -40,6 +42,43 @@ class LectorDeRespuestas
         }
 
         return new PeticionesPendientes(trim($resultado->getAttribute('CodEstatus')), $uuids);
+    }
+
+    /**
+     * @throws ProblemaConElSat
+     */
+    public function acuse(Response $respuesta, string $xmlEnviado): AcuseDeRespuesta
+    {
+        $documento = $this->documento($respuesta);
+        $resultado = $documento->getElementsByTagNameNS(self::NS_SERVICIO, 'ProcesarRespuestaResult')->item(0);
+
+        if (! $resultado instanceof DOMElement) {
+            throw new ProblemaConElSat("La respuesta del SAT (HTTP {$respuesta->getStatusCode()}) no trae ProcesarRespuestaResult.");
+        }
+
+        $folios = [];
+
+        foreach ($resultado->getElementsByTagNameNS(self::NS_DATOS, 'Folios') as $folio) {
+            $folios[] = new FolioDeAcuse(
+                uuid: strtoupper(trim($folio->getElementsByTagNameNS(self::NS_DATOS, 'UUID')->item(0)->textContent ?? '')),
+                respuesta: trim($folio->getAttribute('Respuesta')),
+                estatusUuid: trim($folio->getElementsByTagNameNS(self::NS_DATOS, 'EstatusUUID')->item(0)->textContent ?? ''),
+            );
+        }
+
+        $selladoPorElSat = false;
+
+        foreach ($resultado->getElementsByTagNameNS(FirmadorDeRespuesta::NS_DSIG, 'Signature') as $firma) {
+            $selladoPorElSat = $selladoPorElSat || $firma->getAttribute('Id') === 'SelloSAT';
+        }
+
+        return new AcuseDeRespuesta(
+            codEstatus: trim($resultado->getAttribute('CodEstatus')),
+            folios: $folios,
+            selladoPorElSat: $selladoPorElSat,
+            xmlEnviado: $xmlEnviado,
+            xmlRecibido: $respuesta->getBody(),
+        );
     }
 
     /**

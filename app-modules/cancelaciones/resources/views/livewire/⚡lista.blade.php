@@ -52,7 +52,9 @@ new #[Title('Cancelaciones')] class extends Component {
         <flux:table.rows>
             @forelse ($this->cancelaciones as $cancelacion)
                 <flux:table.row :key="$cancelacion->id">
-                    <flux:table.cell class="font-mono">{{ $cancelacion->uuid }}</flux:table.cell>
+                    <flux:table.cell class="font-mono">
+                        <flux:link :href="route('cancelaciones.detalle', $cancelacion)" wire:navigate>{{ $cancelacion->uuid }}</flux:link>
+                    </flux:table.cell>
                     <flux:table.cell>
                         <flux:badge :color="$cancelacion->estado->color()" size="sm">{{ $cancelacion->estado->etiqueta() }}</flux:badge>
                     </flux:table.cell>
