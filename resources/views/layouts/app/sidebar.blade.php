@@ -24,6 +24,9 @@
                     <flux:sidebar.item icon="document-arrow-down" :href="route('solicitudes.index')" :current="request()->routeIs('solicitudes.*')" wire:navigate>
                         {{ __('Solicitudes') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-minus" :href="route('cancelaciones.index')" :current="request()->routeIs('cancelaciones.*')" wire:navigate>
+                        {{ __('Cancelaciones') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cf45d57a7557481e8d7ba99a8892554b",
+    "content-hash": "015e6cd59d9f9aaab7eb5281a6c9c38d",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -860,6 +860,38 @@
                 "source": "https://github.com/DASPRiD/Enum/tree/1.0.7"
             },
             "time": "2025-09-16T12:23:56+00:00"
+        },
+        {
+            "name": "descarga-sat/cancelaciones",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/cancelaciones",
+                "reference": "b09587f4bd860e35830369399a572ed3c4acac50"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "DescargaSat\\Cancelaciones\\Providers\\CancelacionesServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DescargaSat\\Cancelaciones\\": "src/",
+                    "DescargaSat\\Cancelaciones\\Tests\\": "tests/",
+                    "DescargaSat\\Cancelaciones\\Database\\Factories\\": "database/factories/",
+                    "DescargaSat\\Cancelaciones\\Database\\Seeders\\": "database/seeders/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "descarga-sat/csd",
