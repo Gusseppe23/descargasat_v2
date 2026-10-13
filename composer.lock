@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a52c796fbbacec69fe34872a7b3a583a",
+    "content-hash": "cf45d57a7557481e8d7ba99a8892554b",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -860,6 +860,38 @@
                 "source": "https://github.com/DASPRiD/Enum/tree/1.0.7"
             },
             "time": "2025-09-16T12:23:56+00:00"
+        },
+        {
+            "name": "descarga-sat/csd",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/csd",
+                "reference": "e454330742bf5877a505eb3c61dfee7fc46575be"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "DescargaSat\\Csd\\Providers\\CsdServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DescargaSat\\Csd\\": "src/",
+                    "DescargaSat\\Csd\\Tests\\": "tests/",
+                    "DescargaSat\\Csd\\Database\\Factories\\": "database/factories/",
+                    "DescargaSat\\Csd\\Database\\Seeders\\": "database/seeders/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "descarga-sat/descargas",
