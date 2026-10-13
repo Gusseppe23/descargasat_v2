@@ -1,0 +1,10 @@
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+    <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        <ObtenerPeticionesPendientesResponse xmlns="http://cancelacfd.sat.gob.mx/entespublicos">
+            <ObtenerPeticionesPendientesResult CodEstatus="1100">
+                <UUID xmlns="http://cancelacfd.sat.gob.mx">AE4B0CA8-8116-4699-8E20-77B6E9C507A2</UUID>
+                <UUID xmlns="http://cancelacfd.sat.gob.mx">D92516E5-A881-423C-B40F-384008DFE03F</UUID>
+            </ObtenerPeticionesPendientesResult>
+        </ObtenerPeticionesPendientesResponse>
+    </s:Body>
+</s:Envelope>

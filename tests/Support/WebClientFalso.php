@@ -2,26 +2,52 @@
 
 namespace Tests\Support;
 
+use DescargaSat\SatAutenticacion\Contracts\WebClientCancelaciones;
 use PhpCfdi\SatWsDescargaMasiva\WebClient\Exceptions\WebClientException;
 use PhpCfdi\SatWsDescargaMasiva\WebClient\Request;
 use PhpCfdi\SatWsDescargaMasiva\WebClient\Response;
-use PhpCfdi\SatWsDescargaMasiva\WebClient\WebClientInterface;
 use RuntimeException;
 
 /**
  * Doble del cliente web del SAT: guarda cada petición y responde en orden con respuestas preparadas.
+ *
+ * Sirve tanto para la descarga masiva (WebClientInterface) como para el servicio de cancelaciones.
  */
-final class WebClientFalso implements WebClientInterface
+final class WebClientFalso implements WebClientCancelaciones
 {
     /** @var list<Request> */
     public array $peticiones = [];
 
-    /** @var list<Response|null> */
+    /** @var list<Response|WebClientException|null> */
     private array $respuestas = [];
 
     public function responder(string $fixture, int $estado = 200): self
     {
         $this->respuestas[] = new Response($estado, (string) file_get_contents(base_path("tests/Fixtures/sat/{$fixture}")));
+
+        return $this;
+    }
+
+    /**
+     * Responde con el texto indicado tal cual, sin leerlo de un fixture.
+     */
+    public function responderTexto(string $cuerpo, int $estado = 200): self
+    {
+        $this->respuestas[] = new Response($estado, $cuerpo);
+
+        return $this;
+    }
+
+    /**
+     * La siguiente petición falla como Guzzle ante un HTTP 500 con cuerpo, como llega un SOAP Fault del SAT.
+     */
+    public function fallarCon(string $fixture, int $estado = 500): self
+    {
+        $this->respuestas[] = new WebClientException(
+            'Server error',
+            new Request('POST', '', '', []),
+            new Response($estado, (string) file_get_contents(base_path("tests/Fixtures/sat/{$fixture}"))),
+        );
 
         return $this;
     }
@@ -59,7 +85,13 @@ final class WebClientFalso implements WebClientInterface
             throw new RuntimeException("No hay respuesta preparada para {$request->getUri()}");
         }
 
-        return array_shift($this->respuestas)
+        $respuesta = array_shift($this->respuestas);
+
+        if ($respuesta instanceof WebClientException) {
+            throw $respuesta;
+        }
+
+        return $respuesta
             ?? throw new WebClientException("Error connecting to {$request->getUri()}", $request, new Response(500, ''));
     }
 

@@ -1,0 +1,24 @@
+{
+	"name": "descarga-sat/cancelaciones",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"DescargaSat\\Cancelaciones\\": "src/",
+			"DescargaSat\\Cancelaciones\\Tests\\": "tests/",
+			"DescargaSat\\Cancelaciones\\Database\\Factories\\": "database/factories/",
+			"DescargaSat\\Cancelaciones\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"DescargaSat\\Cancelaciones\\Providers\\CancelacionesServiceProvider"
+			]
+		}
+	}
+}

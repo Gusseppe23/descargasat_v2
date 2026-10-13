@@ -28,5 +28,6 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="SAT_CANCELACIONES_URL" value="https://cancelaciones.sat.invalid/AceptacionRechazoServiceEP.svc"/>
     </php>
 </phpunit>
