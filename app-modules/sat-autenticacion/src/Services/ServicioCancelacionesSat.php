@@ -4,9 +4,11 @@ namespace DescargaSat\SatAutenticacion\Services;
 
 use Carbon\CarbonImmutable;
 use DescargaSat\Csd\Contracts\Csds;
+use DescargaSat\SatAutenticacion\Contracts\AcuseDeRespuesta;
 use DescargaSat\SatAutenticacion\Contracts\CsdNoVigente;
 use DescargaSat\SatAutenticacion\Contracts\PeticionesPendientes;
 use DescargaSat\SatAutenticacion\Contracts\ProblemaConElSat;
+use DescargaSat\SatAutenticacion\Contracts\Respuesta;
 use DescargaSat\SatAutenticacion\Contracts\ServicioCancelaciones;
 use DescargaSat\SatAutenticacion\Contracts\WebClientCancelaciones;
 use Illuminate\Support\Facades\Log;
@@ -24,6 +26,7 @@ class ServicioCancelacionesSat implements ServicioCancelaciones
         private WebClientCancelaciones $webClient,
         private SobreCancelaciones $sobres,
         private LectorDeRespuestas $lector,
+        private FirmadorDeRespuesta $firmador,
     ) {}
 
     public function pendientes(int $csdId): PeticionesPendientes
@@ -47,6 +50,24 @@ class ServicioCancelacionesSat implements ServicioCancelaciones
         }
 
         return $pendientes;
+    }
+
+    public function responder(int $csdId, string $uuid, Respuesta $respuesta): AcuseDeRespuesta
+    {
+        $credencial = $this->credencialVigente($csdId);
+
+        $cuerpo = sprintf(
+            '<ProcesarRespuesta xmlns="%s">%s</ProcesarRespuesta>',
+            LectorDeRespuestas::NS_SERVICIO,
+            $this->firmador->firmar($credencial, $uuid, $respuesta, (string) config('sat.cancelaciones.firma')),
+        );
+        $sobre = $this->sobres->sobre($credencial, $cuerpo);
+
+        try {
+            return $this->lector->acuse($this->enviar('ProcesarRespuesta', $sobre), $sobre);
+        } catch (ProblemaConElSat $error) {
+            throw $error->conXmlEnviado($sobre);
+        }
     }
 
     /**
