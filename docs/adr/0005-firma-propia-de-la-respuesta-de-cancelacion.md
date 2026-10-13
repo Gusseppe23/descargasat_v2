@@ -1,0 +1,3 @@
+# Firma propia de la Respuesta de cancelación
+
+La Respuesta de cancelación lleva una firma XMLDSig del cuerpo. No usamos `phpcfdi/xml-cancelacion` aunque está pensado para esto: sus dos firmadores tienen fijo `rsa-sha1`, el ejemplo 6.1 del SAT usa `rsa-sha256`, y para meter su XML en el sobre de entes públicos hay que cambiarle el namespace después de firmarlo, lo que invalida el digest. Firmamos con código propio el elemento exactamente como se envía, con el algoritmo (sha256 o sha1) en la configuración para poder cambiarlo sin tocar código si el SAT responde 30002. El encabezado WS-Security sí se toma de `FielRequestBuilder::authorization()` de `phpcfdi/sat-ws-descarga-masiva`, cuya versión queda fijada en `~1.1.4` porque dependemos del formato exacto de su cuerpo.

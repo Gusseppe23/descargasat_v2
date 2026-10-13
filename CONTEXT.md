@@ -1,6 +1,6 @@
 # Descarga SAT
 
-Aplicación que usa la FIEL de un contribuyente para pedir, vigilar y descargar sus CFDI y Retenciones desde el Servicio Web de Descarga Masiva del SAT.
+Aplicación que usa la FIEL de un contribuyente para pedir, vigilar y descargar sus CFDI y Retenciones desde el Servicio Web de Descarga Masiva del SAT, y su CSD para responder las cancelaciones de CFDI que le piden como ente público.
 
 ## Language
 
@@ -8,11 +8,19 @@ Aplicación que usa la FIEL de un contribuyente para pedir, vigilar y descargar 
 
 **Fiel**:
 Par de certificado (.cer) y llave privada (.key) con su contraseña, emitido por el SAT al RFC del contribuyente, con el que la aplicación se identifica ante el SAT. Todas las Fiel guardadas son del mismo RFC y las comparten todos los usuarios.
-_Avoid_: e.firma, firma electrónica, certificado, CSD
+_Avoid_: e.firma, firma electrónica, certificado
 
 **Fiel activa**:
 La única Fiel con la que se presentan nuevas Solicitudes. Activar una Fiel desactiva las demás.
 _Avoid_: Fiel actual, Fiel predeterminada
+
+**CSD**:
+Certificado de sello digital (.cer, .key y contraseña) del mismo RFC que las Fiel, registrado ante el SAT para responder Cancelaciones pendientes. Una Fiel nunca es un CSD ni al revés.
+_Avoid_: sello, certificado, Fiel
+
+**CSD activo**:
+El único CSD con el que se hacen las Revisiones de cancelaciones y se envían las Respuestas de cancelación. Activar un CSD desactiva los demás.
+_Avoid_: CSD actual, CSD predeterminado
 
 ### Descarga masiva
 
@@ -88,3 +96,50 @@ El Contenido del Paquete ya está separado en su carpeta.
 **Fallido**:
 El Paquete no se pudo descargar después de agotar los reintentos automáticos.
 _Avoid_: error, fallida
+
+### Cancelaciones como ente público
+
+**Cancelación pendiente**:
+CFDI recibido por el RFC de la aplicación cuyo emisor pidió cancelarlo y que el SAT reporta como esperando la Respuesta de cancelación del RFC.
+_Avoid_: petición, solicitud de cancelación, consulta
+
+**Revisión de cancelaciones**:
+Pregunta periódica al SAT por las Cancelaciones pendientes del RFC de la aplicación.
+_Avoid_: consulta de pendientes, polling, Verificación
+
+**Respuesta de cancelación**:
+La decisión de aceptar o rechazar una Cancelación pendiente que se envía al SAT; no se puede deshacer.
+_Avoid_: aceptación, rechazo, Solicitud
+
+**Envío de respuesta**:
+Cada intento de mandar una Respuesta de cancelación al SAT, con el XML enviado y, si llegó, su Acuse de respuesta.
+_Avoid_: reintento, petición
+
+**Acuse de respuesta**:
+XML firmado por el SAT (SelloSAT) que confirma que recibió una Respuesta de cancelación; es la evidencia que se conserva.
+_Avoid_: comprobante, recibo
+
+### Estados de una Cancelación pendiente
+
+**Por responder**:
+El SAT la reporta pendiente y nadie ha enviado una Respuesta de cancelación que el SAT haya recibido.
+_Avoid_: Pendiente, nueva
+
+**Enviando**:
+Un usuario decidió la Respuesta de cancelación y su Envío de respuesta está en curso.
+
+**Aceptación enviada**:
+Estado final: el SAT devolvió el Acuse de respuesta de una aceptación.
+_Avoid_: Aceptada, cancelada
+
+**Rechazo enviado**:
+Estado final: el SAT devolvió el Acuse de respuesta de un rechazo.
+_Avoid_: Rechazada
+
+**Envío incierto**:
+El Envío de respuesta terminó sin Acuse de respuesta, así que no se sabe si el SAT la recibió.
+_Avoid_: fallida, error
+
+**Retirada**:
+Dejó de aparecer en la Revisión de cancelaciones sin que la aplicación la respondiera.
+_Avoid_: Vencida, Abandonada, cancelada
