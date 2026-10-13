@@ -3,13 +3,18 @@
 namespace DescargaSat\Cancelaciones\Providers;
 
 use DescargaSat\Cancelaciones\Console\RevisionDeCancelaciones;
+use DescargaSat\Cancelaciones\Contracts\Cancelaciones;
+use DescargaSat\Cancelaciones\Services\CancelacionesGuardadas;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
 class CancelacionesServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        $this->app->bind(Cancelaciones::class, CancelacionesGuardadas::class);
+    }
 
     public function boot(): void
     {
