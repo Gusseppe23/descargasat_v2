@@ -1,0 +1,13 @@
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+    <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        <ProcesarRespuestaResponse xmlns="http://cancelacfd.sat.gob.mx/entespublicos">
+            <ProcesarRespuestaResult CodEstatus="{codigo}">
+                <Folios xmlns="http://cancelacfd.sat.gob.mx" Respuesta="{respuesta}">
+                    <UUID>{uuid}</UUID>
+                    <EstatusUUID>{estatus}</EstatusUUID>
+                </Folios>
+                {sello}
+            </ProcesarRespuestaResult>
+        </ProcesarRespuestaResponse>
+    </s:Body>
+</s:Envelope>
