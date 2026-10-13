@@ -10,6 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "descarga-sat/csd": "*",
         "descarga-sat/descargas": "*",
         "descarga-sat/fiel": "*",
         "descarga-sat/paquetes": "*",

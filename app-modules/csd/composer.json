@@ -1,0 +1,24 @@
+{
+	"name": "descarga-sat/csd",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"DescargaSat\\Csd\\": "src/",
+			"DescargaSat\\Csd\\Tests\\": "tests/",
+			"DescargaSat\\Csd\\Database\\Factories\\": "database/factories/",
+			"DescargaSat\\Csd\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"DescargaSat\\Csd\\Providers\\CsdServiceProvider"
+			]
+		}
+	}
+}
