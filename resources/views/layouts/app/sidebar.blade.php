@@ -21,6 +21,9 @@
                     <flux:sidebar.item icon="finger-print" :href="route('csd.index')" :current="request()->routeIs('csd.*')" wire:navigate>
                         {{ __('CSD') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="code-bracket-square" :href="route('clientes-api.index')" :current="request()->routeIs('clientes-api.*')" wire:navigate>
+                        {{ __('Clientes API') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="document-arrow-down" :href="route('solicitudes.index')" :current="request()->routeIs('solicitudes.*')" wire:navigate>
                         {{ __('Solicitudes') }}
                     </flux:sidebar.item>
