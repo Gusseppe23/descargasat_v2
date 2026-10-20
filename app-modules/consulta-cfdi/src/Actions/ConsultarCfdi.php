@@ -19,7 +19,17 @@ class ConsultarCfdi
      */
     public function __invoke(string $rfcEmisor, string $rfcReceptor, string $total, string $uuid): AcuseDeConsulta
     {
-        return $this->servicioConsultaCfdi->consultar($this->expresionImpresa($rfcEmisor, $rfcReceptor, $total, $uuid));
+        return $this->conExpresionImpresa($this->expresionImpresa($rfcEmisor, $rfcReceptor, $total, $uuid));
+    }
+
+    /**
+     * Pregunta al SAT con la expresión impresa tal como la trae el CFDI, sin armarla.
+     *
+     * @throws ProblemaConElSat
+     */
+    public function conExpresionImpresa(string $expresionImpresa): AcuseDeConsulta
+    {
+        return $this->servicioConsultaCfdi->consultar(trim($expresionImpresa));
     }
 
     /**
