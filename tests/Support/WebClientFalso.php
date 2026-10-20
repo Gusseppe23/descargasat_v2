@@ -3,6 +3,7 @@
 namespace Tests\Support;
 
 use DescargaSat\SatAutenticacion\Contracts\WebClientCancelaciones;
+use DescargaSat\SatAutenticacion\Contracts\WebClientConsultaCfdi;
 use PhpCfdi\SatWsDescargaMasiva\WebClient\Exceptions\WebClientException;
 use PhpCfdi\SatWsDescargaMasiva\WebClient\Request;
 use PhpCfdi\SatWsDescargaMasiva\WebClient\Response;
@@ -11,9 +12,9 @@ use RuntimeException;
 /**
  * Doble del cliente web del SAT: guarda cada petición y responde en orden con respuestas preparadas.
  *
- * Sirve tanto para la descarga masiva (WebClientInterface) como para el servicio de cancelaciones.
+ * Sirve para la descarga masiva (WebClientInterface), el servicio de cancelaciones y la Consulta de CFDI.
  */
-final class WebClientFalso implements WebClientCancelaciones
+final class WebClientFalso implements WebClientCancelaciones, WebClientConsultaCfdi
 {
     /** @var list<Request> */
     public array $peticiones = [];
