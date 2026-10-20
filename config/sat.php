@@ -21,4 +21,20 @@ return [
         'cada_minutos' => (int) env('SAT_CANCELACIONES_CADA_MINUTOS', 30),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Servicio de Consulta de CFDI
+    |--------------------------------------------------------------------------
+    |
+    | Servicio público del SAT (sin FIEL ni CSD) que dice si un CFDI está
+    | vigente, cancelado o es cancelable, y si su emisor está en la lista EFOS.
+    | Ver docs/sat/consulta-cfdi.md.
+    |
+    */
+
+    'consulta_cfdi' => [
+        'url' => env('SAT_CONSULTA_CFDI_URL', 'https://consultaqr.facturaelectronica.sat.gob.mx/ConsultaCFDIService.svc'),
+        'timeout' => (int) env('SAT_CONSULTA_CFDI_TIMEOUT', 30),
+    ],
+
 ];

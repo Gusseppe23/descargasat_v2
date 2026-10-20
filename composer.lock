@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ae79f20ff1a9958d8e61e2dd542d6d50",
+    "content-hash": "71ec41352e4b68d27f11a355d5e87041",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -918,6 +918,38 @@
                     "DescargaSat\\ClientesApi\\Tests\\": "tests/",
                     "DescargaSat\\ClientesApi\\Database\\Factories\\": "database/factories/",
                     "DescargaSat\\ClientesApi\\Database\\Seeders\\": "database/seeders/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "descarga-sat/consulta-cfdi",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/consulta-cfdi",
+                "reference": "2aac3c8988e626d5a96ab9928dbcf7247ca4883c"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "DescargaSat\\ConsultaCfdi\\Providers\\ConsultaCfdiServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DescargaSat\\ConsultaCfdi\\": "src/",
+                    "DescargaSat\\ConsultaCfdi\\Tests\\": "tests/",
+                    "DescargaSat\\ConsultaCfdi\\Database\\Factories\\": "database/factories/",
+                    "DescargaSat\\ConsultaCfdi\\Database\\Seeders\\": "database/seeders/"
                 }
             },
             "license": [

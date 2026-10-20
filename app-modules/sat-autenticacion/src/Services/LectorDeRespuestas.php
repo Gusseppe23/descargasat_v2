@@ -82,10 +82,12 @@ class LectorDeRespuestas
     }
 
     /**
+     * Lee el XML de cualquier respuesta SOAP del SAT; también lo usa el Servicio de Consulta de CFDI.
+     *
      * @throws RespuestaNoXml
      * @throws FaultDelSat
      */
-    private function documento(Response $respuesta): DOMDocument
+    public function documento(Response $respuesta): DOMDocument
     {
         if (trim($respuesta->getBody()) === '') {
             throw new RespuestaNoXml("El SAT respondió vacío (HTTP {$respuesta->getStatusCode()}).");
