@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use DescargaSat\ClientesApi\Models\ClienteApi;
 
 return [
 
@@ -42,6 +43,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'api' => [
+            'driver' => 'jwt',
+            'provider' => 'clientes_api',
+        ],
     ],
 
     /*
@@ -65,6 +71,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'clientes_api' => [
+            'driver' => 'eloquent',
+            'model' => ClienteApi::class,
         ],
 
         // 'users' => [

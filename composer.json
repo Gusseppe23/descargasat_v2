@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.3",
         "descarga-sat/cancelaciones": "*",
+        "descarga-sat/clientes-api": "*",
         "descarga-sat/csd": "*",
         "descarga-sat/descargas": "*",
         "descarga-sat/fiel": "*",

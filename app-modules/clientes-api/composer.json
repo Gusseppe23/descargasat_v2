@@ -1,0 +1,26 @@
+{
+	"name": "descarga-sat/clientes-api",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {
+		"php-open-source-saver/jwt-auth": "^2.9"
+	},
+	"autoload": {
+		"psr-4": {
+			"DescargaSat\\ClientesApi\\": "src/",
+			"DescargaSat\\ClientesApi\\Tests\\": "tests/",
+			"DescargaSat\\ClientesApi\\Database\\Factories\\": "database/factories/",
+			"DescargaSat\\ClientesApi\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"DescargaSat\\ClientesApi\\Providers\\ClientesApiServiceProvider"
+			]
+		}
+	}
+}

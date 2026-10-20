@@ -143,3 +143,17 @@ _Avoid_: fallida, error
 **Retirada**:
 Dejó de aparecer en la Revisión de cancelaciones sin que la aplicación la respondiera.
 _Avoid_: Vencida, Abandonada, cancelada
+
+### API REST
+
+**Cliente API**:
+Sistema o aplicación externa (no una persona) autorizado a consumir la API REST de este proyecto, identificado por un `client_id` y autenticado con un `client_secret`. Nunca es un usuario humano ni comparte tabla con `users`.
+_Avoid_: usuario de API, cuenta de servicio, app
+
+**Secreto de cliente**:
+Valor que el Cliente API presenta junto con su `client_id` para obtener un token de acceso. Se guarda solo su hash; el valor en claro únicamente se muestra una vez, al crearlo o regenerarlo.
+_Avoid_: contraseña, api key, token
+
+**Token de acceso**:
+JWT de corta vigencia que un Cliente API obtiene autenticándose y que debe enviar en cada llamada a la API (`Authorization: Bearer <token>`). Al vencer, el cliente simplemente vuelve a autenticarse; no hay refresh token.
+_Avoid_: access token (en inglés), api token
