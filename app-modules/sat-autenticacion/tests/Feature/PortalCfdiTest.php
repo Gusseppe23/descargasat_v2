@@ -129,6 +129,14 @@ test('a failed sign in to the portal is a problem with the sat', function () {
         ->toThrow(ProblemaConElSat::class, 'No se pudo iniciar sesión en el portal del SAT (Connection error when try to login using FIEL).');
 });
 
+test('a fiel the sat rejects while signing in is not reported as a problem with the sat', function () {
+    FielesFalsas::usar();
+    ScraperFalso::usar()->fallarConsultaCon(new FielNoVigente('El SAT rechazó la Fiel 30001000000500003416: No se puede acceder al aplicativo porque su E.FIRMA está revocada.'));
+
+    expect(fn () => app(PortalCfdi::class)->descargar(1, UUID_DEL_PORTAL, TipoCfdi::Emitido))
+        ->toThrow(FielNoVigente::class, 'El SAT rechazó la Fiel 30001000000500003416: No se puede acceder al aplicativo porque su E.FIRMA está revocada.');
+});
+
 test('refuses to download with an expired fiel without contacting the sat', function () {
     $certificado = CertificadoDePrueba::fiel();
     FielesFalsas::usar($certificado);
