@@ -37,4 +37,20 @@ return [
         'timeout' => (int) env('SAT_CONSULTA_CFDI_TIMEOUT', 30),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Portal de CFDI
+    |--------------------------------------------------------------------------
+    |
+    | Descarga del XML y el PDF de un CFDI desde el portal del SAT con
+    | phpcfdi/cfdi-sat-scraper, iniciando sesión con la Fiel. "timeout" aplica
+    | a cada petición; una descarga hace varias (login, consulta y archivos).
+    | Ver ADR-0007.
+    |
+    */
+
+    'portal_cfdi' => [
+        'timeout' => (int) env('SAT_PORTAL_CFDI_TIMEOUT', 60),
+    ],
+
 ];
