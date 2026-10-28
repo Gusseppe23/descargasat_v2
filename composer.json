@@ -14,6 +14,7 @@
         "descarga-sat/clientes-api": "*",
         "descarga-sat/consulta-cfdi": "*",
         "descarga-sat/csd": "*",
+        "descarga-sat/descarga-cfdi": "*",
         "descarga-sat/descargas": "*",
         "descarga-sat/fiel": "*",
         "descarga-sat/paquetes": "*",

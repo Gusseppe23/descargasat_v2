@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5f4f8e86b66aff832d5787ce2aae2e08",
+    "content-hash": "c6dfd1c463f4d770fd082f44559ac349",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -982,6 +982,38 @@
                     "DescargaSat\\Csd\\Tests\\": "tests/",
                     "DescargaSat\\Csd\\Database\\Factories\\": "database/factories/",
                     "DescargaSat\\Csd\\Database\\Seeders\\": "database/seeders/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "descarga-sat/descarga-cfdi",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/descarga-cfdi",
+                "reference": "07f8d141c4c23c7fb3f473552dc236bd47ff3a1f"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "DescargaSat\\DescargaCfdi\\Providers\\DescargaCfdiServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DescargaSat\\DescargaCfdi\\": "src/",
+                    "DescargaSat\\DescargaCfdi\\Tests\\": "tests/",
+                    "DescargaSat\\DescargaCfdi\\Database\\Factories\\": "database/factories/",
+                    "DescargaSat\\DescargaCfdi\\Database\\Seeders\\": "database/seeders/"
                 }
             },
             "license": [

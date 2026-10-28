@@ -1,0 +1,24 @@
+{
+	"name": "descarga-sat/descarga-cfdi",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"DescargaSat\\DescargaCfdi\\": "src/",
+			"DescargaSat\\DescargaCfdi\\Tests\\": "tests/",
+			"DescargaSat\\DescargaCfdi\\Database\\Factories\\": "database/factories/",
+			"DescargaSat\\DescargaCfdi\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"DescargaSat\\DescargaCfdi\\Providers\\DescargaCfdiServiceProvider"
+			]
+		}
+	}
+}
