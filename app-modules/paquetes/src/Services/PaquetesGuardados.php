@@ -110,9 +110,11 @@ class PaquetesGuardados implements Paquetes
         } finally {
             $zip->close();
         }
+    }
 
-        $paquete->estado = EstadoPaquete::Extraido;
-        $paquete->save();
+    public function marcarExtraido(int $id): void
+    {
+        Paquete::whereKey($id)->update(['estado' => EstadoPaquete::Extraido]);
     }
 
     /**
