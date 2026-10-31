@@ -53,9 +53,15 @@ interface Paquetes
     public function guardarZip(int $id, string $zip): void;
 
     /**
-     * Extrae el Contenido del Paquete en su carpeta; el Paquete queda Extraído.
+     * Extrae el Contenido del Paquete en su carpeta, sin cambiar su estado. Solo lee la base de datos, así que puede
+     * correr fuera de una transacción sin dejar la base bloqueada mientras escribe los archivos.
      *
      * @throws PaqueteDanado cuando el ZIP no se puede leer o intenta escribir fuera de su carpeta.
      */
     public function extraer(int $id): void;
+
+    /**
+     * El Contenido del Paquete ya está en su carpeta; el Paquete queda Extraído.
+     */
+    public function marcarExtraido(int $id): void;
 }

@@ -7,6 +7,8 @@ use DescargaSat\Solicitudes\Contracts\DatosSolicitud;
 use DescargaSat\Solicitudes\Contracts\EstadoSolicitud;
 use DescargaSat\Solicitudes\Contracts\Solicitudes;
 use DescargaSat\Solicitudes\Models\Solicitud;
+use Illuminate\Database\Events\TransactionBeginning;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use PhpCfdi\SatWsDescargaMasiva\WebClient\WebClientInterface;
 use Tests\Support\FielesFalsas;
@@ -69,6 +71,22 @@ test('marks the solicitud as descargada only when its last paquete is extracted'
 
     expect($despuesDelPrimero)->toBe(EstadoSolicitud::Terminada)
         ->and($solicitud->fresh()->estado)->toBe(EstadoSolicitud::Descargada);
+});
+
+test('writes the extracted files before opening the transaction so sqlite is not locked meanwhile', function () {
+    Storage::fake('local');
+    FielesFalsas::usar();
+    satDescarga()->responderDescarga(ZipDePrueba::con(['uuid-1.xml' => '<cfdi:Comprobante/>']));
+    $paquete = paquetePendiente();
+    $archivosAlAbrirLaTransaccion = [];
+    Event::listen(TransactionBeginning::class, function () use (&$archivosAlAbrirLaTransaccion, $paquete): void {
+        $archivosAlAbrirLaTransaccion[] = Storage::disk('local')->exists("paquetes/{$paquete->solicitud_id}/ABC_01/uuid-1.xml");
+    });
+
+    DescargarPaquete::dispatchSync($paquete->id);
+
+    expect($archivosAlAbrirLaTransaccion)->toBe([true])
+        ->and($paquete->fresh()->estado)->toBe(EstadoPaquete::Extraido);
 });
 
 test('rolls the last paquete back to descargado when the solicitud cannot be marked as descargada', function () {

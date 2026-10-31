@@ -84,16 +84,19 @@ class DescargarPaquete implements ShouldQueue
     }
 
     /**
-     * Extrae el Paquete y, si era el último, deja la Solicitud Descargada. Los cambios en la base de datos
-     * van en una transacción para que nadie vea el último Paquete Extraído con la Solicitud todavía Terminada;
+     * Extrae el Paquete y, si era el último, deja la Solicitud Descargada. Los archivos se escriben antes de la
+     * transacción para no tener bloqueada la base de SQLite mientras tanto. Los cambios en la base de datos van
+     * en una transacción para que nadie vea el último Paquete Extraído con la Solicitud todavía Terminada;
      * si algo falla, los archivos ya extraídos quedan en disco y el reintento los sobrescribe.
      *
      * @throws PaqueteDanado
      */
     private function extraerYMarcarDescargada(Paquetes $paquetes, Solicitudes $solicitudes, int $paqueteId, int $solicitudId): void
     {
+        $paquetes->extraer($paqueteId);
+
         DB::transaction(function () use ($paquetes, $solicitudes, $paqueteId, $solicitudId): void {
-            $paquetes->extraer($paqueteId);
+            $paquetes->marcarExtraido($paqueteId);
             $paquetes->anotarProblema($paqueteId, null);
 
             if ($paquetes->todosExtraidos($solicitudId)) {

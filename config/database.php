@@ -41,7 +41,9 @@ return [
             'busy_timeout' => env('DB_BUSY_TIMEOUT'),
             'journal_mode' => env('DB_JOURNAL_MODE'),
             'synchronous' => null,
-            'transaction_mode' => 'DEFERRED',
+            // IMMEDIATE toma el bloqueo de escritura al abrir la transacción: si otra conexión lo tiene, espera
+            // busy_timeout en lugar de fallar con "database is locked" al pasar de lectura a escritura (#57).
+            'transaction_mode' => 'IMMEDIATE',
         ],
 
         'mysql' => [
