@@ -31,8 +31,8 @@ function satRevisaCancelaciones(string ...$fixtures): WebClientFalso
 }
 
 test('registers the pendientes reported by the sat as por responder', function () {
-    $this->freezeTime();
     CsdsFalsos::usar();
+    $this->freezeTime();
     satRevisaCancelaciones('cancelaciones-pendientes.xml');
 
     $this->artisan('sat:cancelaciones')->assertSuccessful();
@@ -63,8 +63,8 @@ test('keeps the revision with the code of the sat and how many pendientes it rep
 });
 
 test('reviewing again does not duplicate and only moves the last detection', function () {
-    $this->freezeTime();
     CsdsFalsos::usar();
+    $this->freezeTime();
     satRevisaCancelaciones('cancelaciones-pendientes.xml', 'cancelaciones-pendientes.xml');
     $primeraRevision = now()->toDateTimeString();
 

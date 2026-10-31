@@ -58,8 +58,8 @@ function firmaEsValida(DOMElement $solicitud, string $cer, string $algoritmo): b
 }
 
 test('sends the signed solicitud with the answer to procesar respuesta', function (Respuesta $respuesta) {
-    $this->freezeTime();
     CsdsFalsos::usar(CertificadoDePrueba::csd(rfc: 'EKU9003173C9'));
+    $this->freezeTime();
     $webClient = webClientDeRespuestas()->responderAcuse(UUID_A_RESPONDER, $respuesta->value);
 
     app(ServicioCancelaciones::class)->responder(1, strtolower(UUID_A_RESPONDER), $respuesta);

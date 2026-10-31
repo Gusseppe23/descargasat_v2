@@ -135,8 +135,8 @@ test('saves nothing and keeps the form when the sat does not answer', function (
 });
 
 test('rejects an invalid period without contacting the sat', function (Closure $fechas, string $campo, string $mensaje) {
-    $this->freezeTime();
     FielesFalsas::usar();
+    $this->freezeTime();
     $sat = new WebClientFalso;
     app()->instance(WebClientInterface::class, $sat);
 
