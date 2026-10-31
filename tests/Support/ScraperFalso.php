@@ -4,6 +4,8 @@ namespace Tests\Support;
 
 use DescargaSat\SatAutenticacion\Contracts\FabricaDeScraper;
 use GuzzleHttp\Client;
+use GuzzleHttp\Cookie\CookieJarInterface;
+use GuzzleHttp\Cookie\SetCookie;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Promise\PromiseInterface;
@@ -29,6 +31,15 @@ use Throwable;
 final class ScraperFalso implements FabricaDeScraper, SatScraperInterface
 {
     public ?Credential $credencial = null;
+
+    /**
+     * Las cookies con que empezó cada descarga, por nombre.
+     *
+     * @var list<array<string, string>>
+     */
+    public array $cookiesAlEmpezar = [];
+
+    private ?CookieJarInterface $cookies = null;
 
     /** @var list<array{uuids: list<string>, tipo: DownloadType}> */
     public array $consultas = [];
@@ -88,15 +99,28 @@ final class ScraperFalso implements FabricaDeScraper, SatScraperInterface
         return $this;
     }
 
-    public function scraper(Credential $credencial): SatScraperInterface
+    public function scraper(Credential $credencial, CookieJarInterface $cookies): SatScraperInterface
     {
         $this->credencial = $credencial;
+        $this->cookies = $cookies;
+        $this->cookiesAlEmpezar[] = array_column($cookies->toArray(), 'Value', 'Name');
 
         return $this;
     }
 
+    /**
+     * Como el portal: si no hay sesión, inicia una y la deja en las cookies.
+     */
     public function listByUuids(array $uuids, DownloadType $downloadType): MetadataList
     {
+        if ($this->cookies !== null && $this->cookies->toArray() === []) {
+            $this->cookies->setCookie(new SetCookie([
+                'Name' => 'sesion-del-portal',
+                'Value' => 'sesion-'.count($this->cookiesAlEmpezar),
+                'Domain' => 'portalcfdi.facturaelectronica.sat.gob.mx',
+            ]));
+        }
+
         $this->consultas[] = ['uuids' => array_values($uuids), 'tipo' => $downloadType];
 
         if ($this->errorDeConsulta !== null) {

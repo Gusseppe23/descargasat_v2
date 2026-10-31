@@ -2,6 +2,7 @@
 
 namespace DescargaSat\SatAutenticacion\Contracts;
 
+use GuzzleHttp\Cookie\CookieJarInterface;
 use PhpCfdi\CfdiSatScraper\Contracts\SatScraperInterface;
 use PhpCfdi\Credentials\Credential;
 
@@ -11,7 +12,7 @@ use PhpCfdi\Credentials\Credential;
 interface FabricaDeScraper
 {
     /**
-     * Un scraper nuevo, con sesión propia, que inicia sesión con la credencial cuando se usa.
+     * Un scraper que usa la sesión de esas cookies y, si no hay una viva, inicia sesión con la credencial.
      */
-    public function scraper(Credential $credencial): SatScraperInterface;
+    public function scraper(Credential $credencial, CookieJarInterface $cookies): SatScraperInterface;
 }

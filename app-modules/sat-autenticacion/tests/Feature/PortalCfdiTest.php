@@ -7,6 +7,8 @@ use DescargaSat\SatAutenticacion\Contracts\PortalCfdi;
 use DescargaSat\SatAutenticacion\Contracts\ProblemaConElSat;
 use DescargaSat\SatAutenticacion\Contracts\TipoCfdi;
 use DescargaSat\SatAutenticacion\Providers\SatAutenticacionServiceProvider;
+use DescargaSat\SatAutenticacion\Services\SesionesDelPortal;
+use Illuminate\Support\Facades\Cache;
 use PhpCfdi\CfdiSatScraper\Sessions\Fiel\FielLoginException;
 use PhpCfdi\CfdiSatScraper\Sessions\Fiel\FielSessionData;
 use PhpCfdi\Credentials\Credential;
@@ -147,6 +149,65 @@ test('refuses to download with an expired fiel without contacting the sat', func
         ->toThrow(FielNoVigente::class, 'La Fiel 30001000000500003416 venció el '.$certificado->vigenteHasta->format('d/m/Y').'.')
         ->and($scraper->credencial)->toBeNull()
         ->and($scraper->consultas)->toBeEmpty();
+});
+
+/**
+ * Intenta una descarga que el portal no encuentra; sirve para revisar la sesión con que empezó.
+ */
+function descargaQueNoEncuentra(): void
+{
+    try {
+        app(PortalCfdi::class)->descargar(1, UUID_DEL_PORTAL, TipoCfdi::Emitido);
+    } catch (CfdiNoEncontrado) {
+    }
+}
+
+test('keeps the portal session of the fiel encrypted for the next download, even when the download fails', function () {
+    FielesFalsas::usar();
+    $scraper = ScraperFalso::usar();
+
+    descargaQueNoEncuentra();
+    descargaQueNoEncuentra();
+
+    expect($scraper->cookiesAlEmpezar)->toBe([[], ['sesion-del-portal' => 'sesion-1']])
+        ->and(Cache::get('portal-cfdi:sesion:30001000000500003416'))->toBeString()->not->toContain('sesion-1');
+});
+
+test('discards the portal session after 20 minutes without use', function () {
+    FielesFalsas::usar();
+    $scraper = ScraperFalso::usar();
+
+    descargaQueNoEncuentra();
+    $this->travel(19)->minutes();
+    descargaQueNoEncuentra();
+    $this->travel(19)->minutes();
+    descargaQueNoEncuentra();
+    $this->travel(21)->minutes();
+    descargaQueNoEncuentra();
+
+    expect(array_map(fn (array $cookies): bool => $cookies !== [], $scraper->cookiesAlEmpezar))->toBe([false, true, true, false]);
+});
+
+test('does not use the portal session of another fiel', function () {
+    FielesFalsas::usar();
+    $scraper = ScraperFalso::usar();
+    descargaQueNoEncuentra();
+
+    FielesFalsas::usar(CertificadoDePrueba::fiel(numeroCertificado: '30001000000500003418'));
+    descargaQueNoEncuentra();
+
+    expect($scraper->cookiesAlEmpezar[1])->toBe([]);
+});
+
+test('does not sign in while another download with the same fiel is running', function () {
+    FielesFalsas::usar();
+    $scraper = ScraperFalso::usar();
+    app()->instance(SesionesDelPortal::class, new SesionesDelPortal(segundosDeEspera: 0));
+    Cache::lock('portal-cfdi:candado:30001000000500003416', 600)->get();
+
+    expect(fn () => app(PortalCfdi::class)->descargar(1, UUID_DEL_PORTAL, TipoCfdi::Emitido))
+        ->toThrow(ProblemaConElSat::class, 'Hay otra descarga en curso con la Fiel 30001000000500003416; intenta de nuevo en unos minutos.')
+        ->and($scraper->credencial)->toBeNull();
 });
 
 test('the portal client trusts the intermediate certificate the portal does not send', function () {
