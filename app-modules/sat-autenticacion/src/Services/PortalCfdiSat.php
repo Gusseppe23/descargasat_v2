@@ -9,6 +9,7 @@ use DescargaSat\SatAutenticacion\Contracts\FabricaDeScraper;
 use DescargaSat\SatAutenticacion\Contracts\PortalCfdi;
 use DescargaSat\SatAutenticacion\Contracts\ProblemaConElSat;
 use DescargaSat\SatAutenticacion\Contracts\TipoCfdi;
+use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Support\Facades\Log;
 use PhpCfdi\CfdiSatScraper\Contracts\SatScraperInterface;
 use PhpCfdi\CfdiSatScraper\Exceptions\LoginException;
@@ -22,11 +23,21 @@ class PortalCfdiSat implements PortalCfdi
     public function __construct(
         private FielVigente $fielVigente,
         private FabricaDeScraper $fabrica,
+        private SesionesDelPortal $sesiones,
     ) {}
 
     public function descargar(int $fielId, string $uuid, TipoCfdi $tipo): ArchivosCfdi
     {
-        $scraper = $this->fabrica->scraper($this->fielVigente->credencial($fielId));
+        $credencial = $this->fielVigente->credencial($fielId);
+
+        return $this->sesiones->conSesion(
+            $credencial,
+            fn (CookieJar $cookies): ArchivosCfdi => $this->descargarCon($this->fabrica->scraper($credencial, $cookies), $uuid, $tipo),
+        );
+    }
+
+    private function descargarCon(SatScraperInterface $scraper, string $uuid, TipoCfdi $tipo): ArchivosCfdi
+    {
         $cfdi = $this->buscar($scraper, $uuid, $tipo);
 
         $xml = $this->descargarArchivo($scraper, $cfdi, ResourceType::xml());

@@ -5,7 +5,7 @@ namespace DescargaSat\SatAutenticacion\Services;
 use DescargaSat\SatAutenticacion\Contracts\FabricaDeScraper;
 use DescargaSat\SatAutenticacion\Contracts\FielNoVigente;
 use GuzzleHttp\Client;
-use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\Cookie\CookieJarInterface;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\RequestOptions;
 use PhpCfdi\CfdiSatScraper\Contracts\SatScraperInterface;
@@ -23,7 +23,7 @@ class FabricaDeScraperConFiel implements FabricaDeScraper
      */
     public function __construct(private array $opcionesHttp) {}
 
-    public function scraper(Credential $credencial): SatScraperInterface
+    public function scraper(Credential $credencial, CookieJarInterface $cookies): SatScraperInterface
     {
         /** @var callable|null $handler */
         $handler = $this->opcionesHttp['handler'] ?? null;
@@ -32,7 +32,7 @@ class FabricaDeScraperConFiel implements FabricaDeScraper
 
         return new SatScraper(
             FielSessionManager::create($credencial),
-            new SatHttpGateway(new Client(['handler' => $pila, RequestOptions::COOKIES => new CookieJar] + $this->opcionesHttp)),
+            new SatHttpGateway(new Client(['handler' => $pila, RequestOptions::COOKIES => $cookies] + $this->opcionesHttp)),
         );
     }
 

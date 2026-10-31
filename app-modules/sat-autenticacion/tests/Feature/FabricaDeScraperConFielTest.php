@@ -2,6 +2,7 @@
 
 use DescargaSat\SatAutenticacion\Contracts\FielNoVigente;
 use DescargaSat\SatAutenticacion\Services\FabricaDeScraperConFiel;
+use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 use PhpCfdi\CfdiSatScraper\Contracts\SatScraperInterface;
@@ -19,7 +20,7 @@ function scraperQueRecibe(string ...$paginas): SatScraperInterface
     $respuestas = new MockHandler(array_map(fn (string $pagina): Response => new Response(200, [], $pagina), $paginas));
 
     return (new FabricaDeScraperConFiel(['handler' => $respuestas]))
-        ->scraper(Credential::create($certificado->cer, $certificado->key, $certificado->contrasena));
+        ->scraper(Credential::create($certificado->cer, $certificado->key, $certificado->contrasena), new CookieJar);
 }
 
 /**
@@ -35,6 +36,20 @@ function paginasHastaElReto(): array
         '<form id="certform"><input name="guid" value="reto"></form>',
     ];
 }
+
+test('reuses the session of the given cookies without signing in again', function () {
+    $certificado = CertificadoDePrueba::fiel();
+    $paginaConSesion = new Response(200, [], '<html>RFC Autenticado: EKU9003173C9</html>');
+    $respuestas = new MockHandler([$paginaConSesion, $paginaConSesion]);
+    $cookies = new CookieJar(false, [['Name' => 'sesion-del-portal', 'Value' => 'abc', 'Domain' => 'portalcfdi.facturaelectronica.sat.gob.mx']]);
+
+    (new FabricaDeScraperConFiel(['handler' => $respuestas]))
+        ->scraper(Credential::create($certificado->cer, $certificado->key, $certificado->contrasena), $cookies)
+        ->confirmSessionIsAlive();
+
+    expect($respuestas->count())->toBe(0)
+        ->and($respuestas->getLastRequest()?->getHeaderLine('Cookie'))->toBe('sesion-del-portal=abc');
+});
 
 test('a fiel the sat rejects as revoked is not a problem with the sat', function () {
     $scraper = scraperQueRecibe(
