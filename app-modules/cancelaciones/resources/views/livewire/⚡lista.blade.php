@@ -1,17 +1,20 @@
 <?php
 
-use Carbon\CarbonImmutable;
 use DescargaSat\Cancelaciones\Contracts\EstadoCancelacion;
 use DescargaSat\Cancelaciones\Jobs\RevisarCancelacionesAhora;
 use DescargaSat\Cancelaciones\Models\CancelacionPendiente;
 use DescargaSat\Cancelaciones\Models\RevisionDeCancelaciones;
-use Illuminate\Database\Eloquent\Collection;
+use DescargaSat\Cancelaciones\Support\ListadoDeCancelaciones;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 new #[Title('Cancelaciones')] class extends Component {
+    use WithPagination;
+
     #[Url]
     public string $estado = '';
 
@@ -37,9 +40,20 @@ new #[Title('Cancelaciones')] class extends Component {
         unset($this->cancelaciones, $this->ultimaRevision);
     }
 
+    /**
+     * Regresa a la primera página cuando cambia un filtro.
+     */
+    public function updated(string $propiedad): void
+    {
+        if (in_array($propiedad, ['estado', 'desde', 'hasta'], true)) {
+            $this->resetPage();
+        }
+    }
+
     public function limpiarFiltros(): void
     {
         $this->reset('estado', 'desde', 'hasta');
+        $this->resetPage();
     }
 
     #[Computed]
@@ -51,37 +65,18 @@ new #[Title('Cancelaciones')] class extends Component {
     /**
      * Las Cancelaciones pendientes con el estado y el rango de "Detectada por primera vez" elegidos.
      *
-     * @return Collection<int, CancelacionPendiente>
+     * @return LengthAwarePaginator<int, CancelacionPendiente>
      */
     #[Computed]
-    public function cancelaciones(): Collection
+    public function cancelaciones(): LengthAwarePaginator
     {
-        $estado = EstadoCancelacion::tryFrom($this->estado);
-        $desde = $this->fecha($this->desde);
-        $hasta = $this->fecha($this->hasta);
-
-        return CancelacionPendiente::query()
-            ->when($estado, fn ($consulta) => $consulta->where('estado', $estado))
-            ->when($desde, fn ($consulta) => $consulta->where('primera_deteccion_el', '>=', $desde?->startOfDay()))
-            ->when($hasta, fn ($consulta) => $consulta->where('primera_deteccion_el', '<=', $hasta?->endOfDay()))
-            ->orderByDesc('ultima_deteccion_el')
-            ->orderByDesc('id')
-            ->get();
+        return (new ListadoDeCancelaciones($this->estado, $this->desde, $this->hasta))->consulta()->paginate(20);
     }
 
     #[Computed]
     public function ultimaRevision(): ?RevisionDeCancelaciones
     {
         return RevisionDeCancelaciones::latest('id')->first();
-    }
-
-    private function fecha(string $valor): ?CarbonImmutable
-    {
-        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $valor) !== 1) {
-            return null;
-        }
-
-        return CarbonImmutable::createFromFormat('!Y-m-d', $valor) ?: null;
     }
 }; ?>
 
@@ -124,7 +119,7 @@ new #[Title('Cancelaciones')] class extends Component {
         @endif
     </div>
 
-    <flux:table>
+    <flux:table :paginate="$this->cancelaciones">
         <flux:table.columns>
             <flux:table.column>{{ __('UUID') }}</flux:table.column>
             <flux:table.column>{{ __('Estado') }}</flux:table.column>
