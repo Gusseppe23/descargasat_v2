@@ -24,6 +24,9 @@ new #[Title('Cancelaciones')] class extends Component {
     #[Url]
     public string $hasta = '';
 
+    #[Url]
+    public string $uuid = '';
+
     /**
      * Encola una Revisión de cancelaciones sin esperar a que termine.
      */
@@ -45,14 +48,14 @@ new #[Title('Cancelaciones')] class extends Component {
      */
     public function updated(string $propiedad): void
     {
-        if (in_array($propiedad, ['estado', 'desde', 'hasta'], true)) {
+        if (in_array($propiedad, ['estado', 'desde', 'hasta', 'uuid'], true)) {
             $this->resetPage();
         }
     }
 
     public function limpiarFiltros(): void
     {
-        $this->reset('estado', 'desde', 'hasta');
+        $this->reset('estado', 'desde', 'hasta', 'uuid');
         $this->resetPage();
     }
 
@@ -63,14 +66,14 @@ new #[Title('Cancelaciones')] class extends Component {
     }
 
     /**
-     * Las Cancelaciones pendientes con el estado y el rango de "Detectada por primera vez" elegidos.
+     * Las Cancelaciones pendientes con el estado, el rango de "Detectada por primera vez" y el UUID buscados.
      *
      * @return LengthAwarePaginator<int, CancelacionPendiente>
      */
     #[Computed]
     public function cancelaciones(): LengthAwarePaginator
     {
-        return (new ListadoDeCancelaciones($this->estado, $this->desde, $this->hasta))->consulta()->paginate(20);
+        return (new ListadoDeCancelaciones($this->estado, $this->desde, $this->hasta, $this->uuid))->consulta()->paginate(20);
     }
 
     #[Computed]
@@ -106,6 +109,7 @@ new #[Title('Cancelaciones')] class extends Component {
     @endif
 
     <div class="flex flex-wrap items-end gap-4">
+        <flux:input wire:model.live.debounce.300ms="uuid" icon="magnifying-glass" :label="__('UUID')" :placeholder="__('Buscar por UUID')" class="max-w-80" />
         <flux:select wire:model.live="estado" :label="__('Estado')" class="max-w-48">
             <flux:select.option value="">{{ __('Todos') }}</flux:select.option>
             @foreach (EstadoCancelacion::cases() as $opcion)
@@ -114,7 +118,7 @@ new #[Title('Cancelaciones')] class extends Component {
         </flux:select>
         <flux:input wire:model.live="desde" type="date" :label="__('Detectada desde')" class="max-w-44" />
         <flux:input wire:model.live="hasta" type="date" :label="__('Detectada hasta')" class="max-w-44" />
-        @if ($estado !== '' || $desde !== '' || $hasta !== '')
+        @if ($estado !== '' || $desde !== '' || $hasta !== '' || $uuid !== '')
             <flux:button variant="ghost" wire:click="limpiarFiltros">{{ __('Quitar filtros') }}</flux:button>
         @endif
     </div>

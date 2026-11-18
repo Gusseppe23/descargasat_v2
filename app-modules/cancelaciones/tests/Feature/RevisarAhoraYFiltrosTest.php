@@ -81,6 +81,73 @@ test('filters combine state and the range of the first detection', function () {
         ->assertSee(['AAAAAAAA-0000-0000-0000-000000000003', 'AAAAAAAA-0000-0000-0000-000000000004']);
 });
 
+test('searches by the full uuid or a fragment of it in any case', function () {
+    CancelacionPendiente::factory()->create(['uuid' => 'AE4B0CA8-8116-4699-8E20-77B6E9C507A2']);
+    CancelacionPendiente::factory()->create(['uuid' => 'D92516E5-A881-423C-B40F-384008DFE03F']);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test('cancelaciones::lista')
+        ->set('uuid', 'ae4b0ca8-8116-4699-8e20-77b6e9c507a2')
+        ->assertSee('AE4B0CA8-8116-4699-8E20-77B6E9C507A2')
+        ->assertDontSee('D92516E5-A881-423C-B40F-384008DFE03F')
+        ->set('uuid', ' 77b6e9 ')
+        ->assertSee('AE4B0CA8-8116-4699-8E20-77B6E9C507A2')
+        ->assertDontSee('D92516E5-A881-423C-B40F-384008DFE03F');
+});
+
+test('the uuid search combines with the state filter', function () {
+    CancelacionPendiente::factory()->create(['uuid' => 'BBBBBBBB-0000-0000-0000-000000000001']);
+    CancelacionPendiente::factory()->enEstado(EstadoCancelacion::Retirada)->create(['uuid' => 'BBBBBBBB-0000-0000-0000-000000000002']);
+    CancelacionPendiente::factory()->create(['uuid' => 'CCCCCCCC-0000-0000-0000-000000000003']);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test('cancelaciones::lista')
+        ->set('uuid', 'bbbbbbbb')
+        ->set('estado', EstadoCancelacion::Retirada->value)
+        ->assertSee('BBBBBBBB-0000-0000-0000-000000000002')
+        ->assertDontSee(['BBBBBBBB-0000-0000-0000-000000000001', 'CCCCCCCC-0000-0000-0000-000000000003']);
+});
+
+test('a uuid search without matches says there are no cancelaciones pendientes', function () {
+    CancelacionPendiente::factory()->create(['uuid' => 'AE4B0CA8-8116-4699-8E20-77B6E9C507A2']);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test('cancelaciones::lista')
+        ->set('uuid', 'FFFFFFFF')
+        ->assertSee('No hay Cancelaciones pendientes.')
+        ->assertDontSee('AE4B0CA8-8116-4699-8E20-77B6E9C507A2');
+});
+
+test('searching by uuid goes back to the first page', function () {
+    foreach (range(1, 25) as $numero) {
+        CancelacionPendiente::factory()->create([
+            'uuid' => sprintf('AAAAAAAA-0000-0000-0000-%012d', $numero),
+            'ultima_deteccion_el' => now()->subDays(30)->addDays($numero),
+        ]);
+    }
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test('cancelaciones::lista')
+        ->call('gotoPage', 2)
+        ->set('uuid', 'aaaaaaaa')
+        ->assertSee('AAAAAAAA-0000-0000-0000-000000000025')
+        ->assertDontSee('AAAAAAAA-0000-0000-0000-000000000005');
+});
+
+test('quitar filtros appears with a uuid search and clears it', function () {
+    CancelacionPendiente::factory()->create(['uuid' => 'AE4B0CA8-8116-4699-8E20-77B6E9C507A2']);
+    CancelacionPendiente::factory()->create(['uuid' => 'D92516E5-A881-423C-B40F-384008DFE03F']);
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test('cancelaciones::lista')
+        ->assertDontSee('Quitar filtros')
+        ->set('uuid', 'AE4B0CA8')
+        ->assertSee('Quitar filtros')
+        ->call('limpiarFiltros')
+        ->assertSet('uuid', '')
+        ->assertSee(['AE4B0CA8-8116-4699-8E20-77B6E9C507A2', 'D92516E5-A881-423C-B40F-384008DFE03F']);
+});
+
 test('counts the cancelaciones por responder', function () {
     CancelacionPendiente::factory()->count(2)->create();
     CancelacionPendiente::factory()->enEstado(EstadoCancelacion::Retirada)->create();
