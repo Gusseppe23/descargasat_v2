@@ -11,6 +11,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 new #[Title('Cancelaciones')] class extends Component {
     use WithPagination;
@@ -59,6 +60,31 @@ new #[Title('Cancelaciones')] class extends Component {
         $this->resetPage();
     }
 
+    /**
+     * Descarga en CSV todas las Cancelaciones pendientes con los filtros aplicados, no solo la página visible.
+     */
+    public function exportar(): StreamedResponse
+    {
+        $consulta = (new ListadoDeCancelaciones($this->estado, $this->desde, $this->hasta, $this->uuid))->consulta();
+
+        return response()->streamDownload(function () use ($consulta): void {
+            $salida = fopen('php://output', 'w');
+            fwrite($salida, "\u{FEFF}");
+            fputcsv($salida, ['UUID', 'Estado', 'Detectada por primera vez', 'Última detección'], escape: '');
+
+            foreach ($consulta->lazy() as $cancelacion) {
+                fputcsv($salida, [
+                    $cancelacion->uuid,
+                    $cancelacion->estado->etiqueta(),
+                    $cancelacion->primera_deteccion_el->format('Y-m-d H:i:s'),
+                    $cancelacion->ultima_deteccion_el->format('Y-m-d H:i:s'),
+                ], escape: '');
+            }
+
+            fclose($salida);
+        }, 'cancelaciones-'.now()->format('Ymd-Hi').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
     #[Computed]
     public function revisionEnCurso(): bool
     {
@@ -87,11 +113,15 @@ new #[Title('Cancelaciones')] class extends Component {
     <div class="flex items-center justify-between">
         <flux:heading size="xl" level="1">{{ __('Cancelaciones') }}</flux:heading>
 
-        @if ($this->revisionEnCurso)
-            <flux:button icon="arrow-path" disabled>{{ __('Revisión en curso…') }}</flux:button>
-        @else
-            <flux:button icon="arrow-path" wire:click="revisarAhora">{{ __('Revisar ahora') }}</flux:button>
-        @endif
+        <div class="flex gap-2">
+            <flux:button icon="arrow-down-tray" wire:click="exportar">{{ __('Exportar') }}</flux:button>
+
+            @if ($this->revisionEnCurso)
+                <flux:button icon="arrow-path" disabled>{{ __('Revisión en curso…') }}</flux:button>
+            @else
+                <flux:button icon="arrow-path" wire:click="revisarAhora">{{ __('Revisar ahora') }}</flux:button>
+            @endif
+        </div>
     </div>
 
     <flux:text>{{ __('CFDI recibidos cuyo emisor pidió cancelarlos y que esperan la respuesta del RFC como ente público.') }}</flux:text>
