@@ -17,6 +17,7 @@ class ListadoDeCancelaciones
         private string $estado = '',
         private string $desde = '',
         private string $hasta = '',
+        private string $uuid = '',
     ) {}
 
     /**
@@ -29,11 +30,13 @@ class ListadoDeCancelaciones
         $estado = EstadoCancelacion::tryFrom($this->estado);
         $desde = $this->fecha($this->desde);
         $hasta = $this->fecha($this->hasta);
+        $uuid = mb_strtoupper(trim($this->uuid));
 
         return CancelacionPendiente::query()
             ->when($estado, fn (Builder $consulta) => $consulta->where('estado', $estado))
             ->when($desde, fn (Builder $consulta) => $consulta->where('primera_deteccion_el', '>=', $desde?->startOfDay()))
             ->when($hasta, fn (Builder $consulta) => $consulta->where('primera_deteccion_el', '<=', $hasta?->endOfDay()))
+            ->when($uuid !== '', fn (Builder $consulta) => $consulta->where('uuid', 'like', '%'.$uuid.'%'))
             ->orderByDesc('ultima_deteccion_el')
             ->orderByDesc('id');
     }
