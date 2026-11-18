@@ -20,6 +20,43 @@ test('lists the cancelaciones pendientes with their state', function () {
         ->assertSee(['AE4B0CA8-8116-4699-8E20-77B6E9C507A2', 'Por responder', 'D92516E5-A881-423C-B40F-384008DFE03F', 'Retirada']);
 });
 
+test('shows 20 cancelaciones per page and the rest on the next page', function () {
+    foreach (range(1, 25) as $numero) {
+        CancelacionPendiente::factory()->create([
+            'uuid' => sprintf('AAAAAAAA-0000-0000-0000-%012d', $numero),
+            'ultima_deteccion_el' => now()->subDays(30)->addDays($numero),
+        ]);
+    }
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test('cancelaciones::lista')
+        ->assertSee(['AAAAAAAA-0000-0000-0000-000000000025', 'AAAAAAAA-0000-0000-0000-000000000006'])
+        ->assertDontSee('AAAAAAAA-0000-0000-0000-000000000005')
+        ->call('gotoPage', 2)
+        ->assertSee(['AAAAAAAA-0000-0000-0000-000000000005', 'AAAAAAAA-0000-0000-0000-000000000001'])
+        ->assertDontSee('AAAAAAAA-0000-0000-0000-000000000006');
+});
+
+test('changing or clearing a filter goes back to the first page', function () {
+    foreach (range(1, 25) as $numero) {
+        CancelacionPendiente::factory()->create([
+            'uuid' => sprintf('AAAAAAAA-0000-0000-0000-%012d', $numero),
+            'ultima_deteccion_el' => now()->subDays(30)->addDays($numero),
+        ]);
+    }
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test('cancelaciones::lista')
+        ->call('gotoPage', 2)
+        ->set('estado', EstadoCancelacion::PorResponder->value)
+        ->assertSee('AAAAAAAA-0000-0000-0000-000000000025')
+        ->assertDontSee('AAAAAAAA-0000-0000-0000-000000000005')
+        ->call('gotoPage', 2)
+        ->call('limpiarFiltros')
+        ->assertSee('AAAAAAAA-0000-0000-0000-000000000025')
+        ->assertDontSee('AAAAAAAA-0000-0000-0000-000000000005');
+});
+
 test('says when there are no cancelaciones pendientes and no revision yet', function () {
     $this->actingAs(User::factory()->create());
 
