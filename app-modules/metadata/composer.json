@@ -1,0 +1,24 @@
+{
+	"name": "descarga-sat/metadata",
+	"description": "",
+	"type": "library",
+	"version": "1.0",
+	"license": "proprietary",
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"DescargaSat\\Metadata\\": "src/",
+			"DescargaSat\\Metadata\\Tests\\": "tests/",
+			"DescargaSat\\Metadata\\Database\\Factories\\": "database/factories/",
+			"DescargaSat\\Metadata\\Database\\Seeders\\": "database/seeders/"
+		}
+	},
+	"minimum-stability": "stable",
+	"extra": {
+		"laravel": {
+			"providers": [
+				"DescargaSat\\Metadata\\Providers\\MetadataServiceProvider"
+			]
+		}
+	}
+}

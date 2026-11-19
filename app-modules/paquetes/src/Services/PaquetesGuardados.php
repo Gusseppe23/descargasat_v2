@@ -5,6 +5,7 @@ namespace DescargaSat\Paquetes\Services;
 use DescargaSat\Paquetes\Contracts\DatosPaquete;
 use DescargaSat\Paquetes\Contracts\EstadoPaquete;
 use DescargaSat\Paquetes\Contracts\PaqueteDanado;
+use DescargaSat\Paquetes\Contracts\PaqueteExtraido;
 use DescargaSat\Paquetes\Contracts\Paquetes;
 use DescargaSat\Paquetes\Contracts\PaquetesRegistrados;
 use DescargaSat\Paquetes\Models\Paquete;
@@ -114,7 +115,10 @@ class PaquetesGuardados implements Paquetes
 
     public function marcarExtraido(int $id): void
     {
-        Paquete::whereKey($id)->update(['estado' => EstadoPaquete::Extraido]);
+        $paquete = Paquete::findOrFail($id);
+        $paquete->update(['estado' => EstadoPaquete::Extraido]);
+
+        PaqueteExtraido::dispatch($paquete->id, $paquete->carpeta());
     }
 
     /**

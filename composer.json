@@ -17,6 +17,7 @@
         "descarga-sat/descarga-cfdi": "*",
         "descarga-sat/descargas": "*",
         "descarga-sat/fiel": "*",
+        "descarga-sat/metadata": "*",
         "descarga-sat/paquetes": "*",
         "descarga-sat/sat-autenticacion": "*",
         "descarga-sat/solicitudes": "*",
