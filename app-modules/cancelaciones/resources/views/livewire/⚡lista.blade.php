@@ -5,7 +5,10 @@ use DescargaSat\Cancelaciones\Jobs\RevisarCancelacionesAhora;
 use DescargaSat\Cancelaciones\Models\CancelacionPendiente;
 use DescargaSat\Cancelaciones\Models\RevisionDeCancelaciones;
 use DescargaSat\Cancelaciones\Support\ListadoDeCancelaciones;
+use DescargaSat\Metadata\Contracts\DatosMetadata;
+use DescargaSat\Metadata\Contracts\MetadataCfdi;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -41,7 +44,7 @@ new #[Title('Cancelaciones')] class extends Component {
      */
     public function refrescar(): void
     {
-        unset($this->cancelaciones, $this->ultimaRevision);
+        unset($this->cancelaciones, $this->metadata, $this->ultimaRevision);
     }
 
     /**
@@ -66,20 +69,32 @@ new #[Title('Cancelaciones')] class extends Component {
     public function exportar(): StreamedResponse
     {
         $consulta = (new ListadoDeCancelaciones($this->estado, $this->desde, $this->hasta, $this->uuid))->consulta();
+        $metadataCfdi = app(MetadataCfdi::class);
 
-        return response()->streamDownload(function () use ($consulta): void {
+        return response()->streamDownload(function () use ($consulta, $metadataCfdi): void {
             $salida = fopen('php://output', 'w');
             fwrite($salida, "\u{FEFF}");
-            fputcsv($salida, ['UUID', 'Estado', 'Detectada por primera vez', 'Última detección'], escape: '');
+            fputcsv($salida, ['UUID', 'Estado', 'RFC emisor', 'Nombre emisor', 'Importe', 'Fecha de emisión', 'Detectada por primera vez', 'Última detección'], escape: '');
 
-            foreach ($consulta->lazy() as $cancelacion) {
-                fputcsv($salida, [
-                    $cancelacion->uuid,
-                    $cancelacion->estado->etiqueta(),
-                    $cancelacion->primera_deteccion_el->format('Y-m-d H:i:s'),
-                    $cancelacion->ultima_deteccion_el->format('Y-m-d H:i:s'),
-                ], escape: '');
-            }
+            // Por bloques, para pedir la Metadata de CFDI una vez por bloque y no por fila.
+            $consulta->chunk(500, function (Collection $bloque) use ($salida, $metadataCfdi): void {
+                $metadata = $metadataCfdi->deUuids($bloque->pluck('uuid')->all());
+
+                foreach ($bloque as $cancelacion) {
+                    $datos = $metadata[$cancelacion->uuid] ?? null;
+
+                    fputcsv($salida, [
+                        $cancelacion->uuid,
+                        $cancelacion->estado->etiqueta(),
+                        $datos?->rfcEmisor ?? '',
+                        $datos?->nombreEmisor ?? '',
+                        $datos?->monto ?? '',
+                        $datos?->fechaEmision->format('Y-m-d H:i:s') ?? '',
+                        $cancelacion->primera_deteccion_el->format('Y-m-d H:i:s'),
+                        $cancelacion->ultima_deteccion_el->format('Y-m-d H:i:s'),
+                    ], escape: '');
+                }
+            });
 
             fclose($salida);
         }, 'cancelaciones-'.now()->format('Ymd-Hi').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
@@ -100,6 +115,17 @@ new #[Title('Cancelaciones')] class extends Component {
     public function cancelaciones(): LengthAwarePaginator
     {
         return (new ListadoDeCancelaciones($this->estado, $this->desde, $this->hasta, $this->uuid))->consulta()->paginate(20);
+    }
+
+    /**
+     * La Metadata de CFDI de las Cancelaciones de la página visible, indexada por UUID.
+     *
+     * @return array<string, DatosMetadata>
+     */
+    #[Computed]
+    public function metadata(): array
+    {
+        return app(MetadataCfdi::class)->deUuids($this->cancelaciones->getCollection()->pluck('uuid')->all());
     }
 
     #[Computed]
@@ -157,12 +183,17 @@ new #[Title('Cancelaciones')] class extends Component {
         <flux:table.columns>
             <flux:table.column>{{ __('UUID') }}</flux:table.column>
             <flux:table.column>{{ __('Estado') }}</flux:table.column>
+            <flux:table.column>{{ __('RFC emisor') }}</flux:table.column>
+            <flux:table.column>{{ __('Nombre emisor') }}</flux:table.column>
+            <flux:table.column align="end">{{ __('Importe') }}</flux:table.column>
+            <flux:table.column>{{ __('Fecha de emisión') }}</flux:table.column>
             <flux:table.column>{{ __('Detectada por primera vez') }}</flux:table.column>
             <flux:table.column>{{ __('Última detección') }}</flux:table.column>
         </flux:table.columns>
 
         <flux:table.rows>
             @forelse ($this->cancelaciones as $cancelacion)
+                @php($datos = $this->metadata[$cancelacion->uuid] ?? null)
                 <flux:table.row :key="$cancelacion->id">
                     <flux:table.cell class="font-mono">
                         <flux:link :href="route('cancelaciones.detalle', $cancelacion)" wire:navigate>{{ $cancelacion->uuid }}</flux:link>
@@ -170,12 +201,16 @@ new #[Title('Cancelaciones')] class extends Component {
                     <flux:table.cell>
                         <flux:badge :color="$cancelacion->estado->color()" size="sm">{{ $cancelacion->estado->etiqueta() }}</flux:badge>
                     </flux:table.cell>
+                    <flux:table.cell class="font-mono">{{ $datos?->rfcEmisor ?? '—' }}</flux:table.cell>
+                    <flux:table.cell>{{ $datos?->nombreEmisor ?? '—' }}</flux:table.cell>
+                    <flux:table.cell align="end">{{ $datos === null ? '—' : '$'.number_format((float) $datos->monto, 2) }}</flux:table.cell>
+                    <flux:table.cell>{{ $datos?->fechaEmision->format('d/m/Y') ?? '—' }}</flux:table.cell>
                     <flux:table.cell>{{ $cancelacion->primera_deteccion_el->format('d/m/Y H:i') }}</flux:table.cell>
                     <flux:table.cell>{{ $cancelacion->ultima_deteccion_el->format('d/m/Y H:i') }}</flux:table.cell>
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="4">{{ __('No hay Cancelaciones pendientes.') }}</flux:table.cell>
+                    <flux:table.cell colspan="8">{{ __('No hay Cancelaciones pendientes.') }}</flux:table.cell>
                 </flux:table.row>
             @endforelse
         </flux:table.rows>

@@ -4,6 +4,8 @@ use DescargaSat\Cancelaciones\Actions\ResponderCancelacion;
 use DescargaSat\Cancelaciones\Contracts\EstadoCancelacion;
 use DescargaSat\Cancelaciones\Models\CancelacionPendiente;
 use DescargaSat\Cancelaciones\Models\EnvioDeRespuesta;
+use DescargaSat\Metadata\Contracts\DatosMetadata;
+use DescargaSat\Metadata\Contracts\MetadataCfdi;
 use DescargaSat\SatAutenticacion\Contracts\Respuesta;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
@@ -50,6 +52,15 @@ new #[Title('Cancelación')] class extends Component {
         unset($this->envios, $this->puedeResponderse);
     }
 
+    /**
+     * La Metadata de CFDI de la Cancelación, o null si todavía no se tiene.
+     */
+    #[Computed]
+    public function metadata(): ?DatosMetadata
+    {
+        return app(MetadataCfdi::class)->deUuids([$this->cancelacion->uuid])[$this->cancelacion->uuid] ?? null;
+    }
+
     #[Computed]
     public function puedeResponderse(): bool
     {
@@ -93,6 +104,18 @@ new #[Title('Cancelación')] class extends Component {
 
         <dt class="text-zinc-500">{{ __('Última detección') }}</dt>
         <dd>{{ $cancelacion->ultima_deteccion_el->format('d/m/Y H:i') }}</dd>
+
+        <dt class="text-zinc-500">{{ __('RFC emisor') }}</dt>
+        <dd class="font-mono">{{ $this->metadata?->rfcEmisor ?? '—' }}</dd>
+
+        <dt class="text-zinc-500">{{ __('Nombre emisor') }}</dt>
+        <dd>{{ $this->metadata?->nombreEmisor ?? '—' }}</dd>
+
+        <dt class="text-zinc-500">{{ __('Importe') }}</dt>
+        <dd>{{ $this->metadata === null ? '—' : '$'.number_format((float) $this->metadata->monto, 2) }}</dd>
+
+        <dt class="text-zinc-500">{{ __('Fecha de emisión') }}</dt>
+        <dd>{{ $this->metadata?->fechaEmision->format('d/m/Y') ?? '—' }}</dd>
     </dl>
 
     @if ($this->puedeResponderse)
