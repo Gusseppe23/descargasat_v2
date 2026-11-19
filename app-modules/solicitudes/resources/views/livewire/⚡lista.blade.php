@@ -52,10 +52,20 @@ new #[Title('Solicitudes')] class extends Component {
                 <flux:table.row :key="$solicitud->id" id="solicitud-{{ $solicitud->id }}">
                     <flux:table.cell>{{ $solicitud->created_at?->format('d/m/Y H:i') }}</flux:table.cell>
                     <flux:table.cell>{{ $solicitud->servicio === Servicio::Cfdi ? 'CFDI' : 'Retenciones' }}</flux:table.cell>
-                    <flux:table.cell>{{ $solicitud->fecha_inicio->format('d/m/Y') }} – {{ $solicitud->fecha_fin->format('d/m/Y') }}</flux:table.cell>
+                    <flux:table.cell>
+                        @if ($solicitud->uuid !== null)
+                            <span class="font-mono">{{ $solicitud->uuid }}</span>
+                        @else
+                            {{ $solicitud->fecha_inicio->format('d/m/Y') }} – {{ $solicitud->fecha_fin->format('d/m/Y') }}
+                        @endif
+                    </flux:table.cell>
                     <flux:table.cell>{{ $solicitud->tipo_descarga->etiqueta() }} · {{ $solicitud->tipo_solicitud->etiqueta() }}</flux:table.cell>
                     <flux:table.cell>
-                        {{ $solicitud->tipo_comprobante?->etiqueta() ?? __('Todos los tipos') }} · {{ $solicitud->estado_comprobante->etiqueta() }}
+                        @if ($solicitud->uuid !== null)
+                            —
+                        @else
+                            {{ $solicitud->tipo_comprobante?->etiqueta() ?? __('Todos los tipos') }} · {{ $solicitud->estado_comprobante->etiqueta() }}
+                        @endif
                     </flux:table.cell>
                     <flux:table.cell>
                         <x-solicitudes::estado :solicitud="$solicitud" />
@@ -63,7 +73,7 @@ new #[Title('Solicitudes')] class extends Component {
                             <flux:text size="sm">{{ $solicitud->mensaje_sat }}</flux:text>
                         @endif
                     </flux:table.cell>
-                    <flux:table.cell>{{ $solicitud->presentadaPor?->name }}</flux:table.cell>
+                    <flux:table.cell>{{ $solicitud->automatica ? __('Automática') : $solicitud->presentadaPor?->name }}</flux:table.cell>
                     <flux:table.cell align="end">
                         <flux:button size="sm" :href="route('solicitudes.show', $solicitud)" wire:navigate>{{ __('Ver') }}</flux:button>
                     </flux:table.cell>

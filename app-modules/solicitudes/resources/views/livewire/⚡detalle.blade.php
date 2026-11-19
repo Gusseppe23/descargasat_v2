@@ -37,14 +37,28 @@ new #[Title('Solicitud')] class extends Component {
         <dt class="text-zinc-500">{{ __('Servicio') }}</dt>
         <dd>{{ $solicitud->servicio === Servicio::Cfdi ? 'CFDI' : 'Retenciones' }}</dd>
 
-        <dt class="text-zinc-500">{{ __('Periodo') }}</dt>
-        <dd>{{ $solicitud->fecha_inicio->format('d/m/Y') }} – {{ $solicitud->fecha_fin->format('d/m/Y') }}</dd>
+        @if ($solicitud->uuid !== null)
+            <dt class="text-zinc-500">{{ __('UUID') }}</dt>
+            <dd class="font-mono">{{ $solicitud->uuid }}</dd>
+        @else
+            <dt class="text-zinc-500">{{ __('Periodo') }}</dt>
+            <dd>{{ $solicitud->fecha_inicio->format('d/m/Y') }} – {{ $solicitud->fecha_fin->format('d/m/Y') }}</dd>
+        @endif
 
         <dt class="text-zinc-500">{{ __('Comprobantes') }}</dt>
         <dd>{{ $solicitud->tipo_descarga->etiqueta() }} · {{ $solicitud->tipo_solicitud->etiqueta() }}</dd>
 
         <dt class="text-zinc-500">{{ __('Filtros') }}</dt>
-        <dd>{{ $solicitud->tipo_comprobante?->etiqueta() ?? __('Todos los tipos') }} · {{ $solicitud->estado_comprobante->etiqueta() }}</dd>
+        <dd>
+            @if ($solicitud->uuid !== null)
+                —
+            @else
+                {{ $solicitud->tipo_comprobante?->etiqueta() ?? __('Todos los tipos') }} · {{ $solicitud->estado_comprobante->etiqueta() }}
+            @endif
+        </dd>
+
+        <dt class="text-zinc-500">{{ __('Presentada por') }}</dt>
+        <dd>{{ $solicitud->automatica ? __('Automática') : ($solicitud->presentadaPor?->name ?? '—') }}</dd>
 
         <dt class="text-zinc-500">{{ __('Estado') }}</dt>
         <dd>

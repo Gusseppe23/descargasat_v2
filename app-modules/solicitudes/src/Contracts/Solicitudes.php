@@ -25,4 +25,12 @@ interface Solicitudes
      * Anota la hora de este intento de Verificación y su problema, o null si salió bien.
      */
     public function anotarIntento(int $id, ?string $problema): void;
+
+    /**
+     * Presenta con la Fiel activa una Solicitud automática por UUID (folio), sin usuario, y devuelve su id.
+     * El SAT entrega en su Paquete el XML del CFDI.
+     *
+     * @throws NoSePudoPresentarSolicitud
+     */
+    public function presentarPorUuid(string $uuid): int;
 }
