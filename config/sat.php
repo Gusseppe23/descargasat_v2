@@ -53,4 +53,20 @@ return [
         'timeout' => (int) env('SAT_PORTAL_CFDI_TIMEOUT', 60),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Metadata de las Cancelaciones pendientes
+    |--------------------------------------------------------------------------
+    |
+    | Después de cada Revisión de cancelaciones se presenta una Solicitud por
+    | UUID para las Cancelaciones Por responder sin Metadata de CFDI.
+    | "maximo_por_revision" es el tope de Solicitudes por corrida, para no
+    | saturar al SAT; las demás quedan para la siguiente Revisión.
+    |
+    */
+
+    'metadata' => [
+        'maximo_por_revision' => (int) env('SAT_METADATA_MAXIMO_POR_REVISION', 20),
+    ],
+
 ];

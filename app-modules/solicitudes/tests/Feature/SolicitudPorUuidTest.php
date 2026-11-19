@@ -58,19 +58,60 @@ test('does not present a second solicitud for a uuid that already has one', func
         ->and(Solicitud::count())->toBe(1);
 });
 
-test('presents it again when the previous solicitud by uuid was rechazada', function () {
-    FielesFalsas::usar();
-    $rechazada = Solicitud::factory()->rechazada()->create([
+/**
+ * Una Solicitud automática anterior por el UUID dado, en el estado indicado.
+ */
+function solicitudPorUuidAnterior(EstadoSolicitud $estado, string $uuid = 'E4B88846-5546-4F75-AD70-2F61D993C2C6'): Solicitud
+{
+    return Solicitud::factory()->create([
         'presentada_por_id' => null,
         'automatica' => true,
-        'uuid' => 'E4B88846-5546-4F75-AD70-2F61D993C2C6',
+        'uuid' => $uuid,
+        'estado' => $estado,
     ]);
+}
+
+test('presents it once more when the previous solicitud by uuid ended rechazada or en error', function (EstadoSolicitud $estado) {
+    FielesFalsas::usar();
+    $anterior = solicitudPorUuidAnterior($estado);
     $sat = satAceptaFolio();
 
     $id = app(Solicitudes::class)->presentarPorUuid('E4B88846-5546-4F75-AD70-2F61D993C2C6');
 
-    expect($id)->not->toBe($rechazada->id)
+    expect($id)->not->toBe($anterior->id)
         ->and($sat->peticiones)->toHaveCount(2);
+})->with([EstadoSolicitud::Rechazada, EstadoSolicitud::Error]);
+
+test('does not present a third solicitud by uuid after two that ended rechazada or en error', function () {
+    FielesFalsas::usar();
+    solicitudPorUuidAnterior(EstadoSolicitud::Rechazada);
+    $ultima = solicitudPorUuidAnterior(EstadoSolicitud::Error);
+    $sat = satAceptaFolio();
+
+    $id = app(Solicitudes::class)->presentarPorUuid('E4B88846-5546-4F75-AD70-2F61D993C2C6');
+
+    expect($id)->toBe($ultima->id)
+        ->and($sat->peticiones)->toBeEmpty()
+        ->and(Solicitud::count())->toBe(2);
+});
+
+test('tells which uuids can still be requested', function () {
+    solicitudPorUuidAnterior(EstadoSolicitud::Aceptada, '11111111-1111-1111-1111-111111111111');
+    solicitudPorUuidAnterior(EstadoSolicitud::Descargada, '22222222-2222-2222-2222-222222222222');
+    solicitudPorUuidAnterior(EstadoSolicitud::Rechazada, '33333333-3333-3333-3333-333333333333');
+    solicitudPorUuidAnterior(EstadoSolicitud::Rechazada, '44444444-4444-4444-4444-444444444444');
+    solicitudPorUuidAnterior(EstadoSolicitud::Error, '44444444-4444-4444-4444-444444444444');
+
+    expect(app(Solicitudes::class)->porPedirPorUuid([
+        '11111111-1111-1111-1111-111111111111',
+        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        '22222222-2222-2222-2222-222222222222',
+        '33333333-3333-3333-3333-333333333333',
+        '44444444-4444-4444-4444-444444444444',
+    ]))->toBe([
+        'AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA',
+        '33333333-3333-3333-3333-333333333333',
+    ]);
 });
 
 test('without an active fiel it does not contact the sat', function () {

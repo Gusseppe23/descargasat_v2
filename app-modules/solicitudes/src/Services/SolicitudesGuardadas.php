@@ -15,6 +15,7 @@ use DescargaSat\Solicitudes\Enums\TipoDescarga;
 use DescargaSat\Solicitudes\Enums\TipoSolicitud;
 use DescargaSat\Solicitudes\Models\Solicitud;
 use DescargaSat\Solicitudes\Support\ParametrosSolicitud;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
@@ -27,14 +28,10 @@ class SolicitudesGuardadas implements Solicitudes
 
     public function presentarPorUuid(string $uuid): int
     {
-        // El SAT solo acepta dos veces los mismos parámetros en la vida del RFC; las Rechazadas no gastan intentos.
-        $anterior = Solicitud::query()
-            ->where('uuid', strtoupper($uuid))
-            ->where('estado', '!=', EstadoSolicitud::Rechazada)
-            ->value('id');
+        $anteriores = Solicitud::query()->where('uuid', strtoupper($uuid))->latest('id')->get(['id', 'estado']);
 
-        if ($anterior !== null) {
-            return $anterior;
+        if (! $this->sePuedePedir($anteriores)) {
+            return $anteriores->firstOrFail()->id;
         }
 
         $fiel = $this->fieles->activa();
@@ -54,6 +51,29 @@ class SolicitudesGuardadas implements Solicitudes
             // Fiel no vigente o el SAT no respondió; el mensaje es el mismo que ve el usuario en el formulario.
             throw new NoSePudoPresentarSolicitud((string) Arr::first(Arr::flatten($error->errors())), previous: $error);
         }
+    }
+
+    public function porPedirPorUuid(array $uuids): array
+    {
+        $uuids = array_values(array_unique(array_map(strtoupper(...), $uuids)));
+        $anteriores = Solicitud::query()->whereIn('uuid', $uuids)->get(['id', 'uuid', 'estado'])->groupBy('uuid');
+
+        return array_values(array_filter(
+            $uuids,
+            fn (string $uuid): bool => $this->sePuedePedir($anteriores->get($uuid, new Collection)),
+        ));
+    }
+
+    /**
+     * El SAT solo acepta dos veces los mismos parámetros en la vida del RFC: un UUID se pide una vez, y una vez más
+     * solo si la anterior terminó Rechazada o en Error.
+     *
+     * @param  Collection<int, Solicitud>  $anteriores
+     */
+    private function sePuedePedir(Collection $anteriores): bool
+    {
+        return $anteriores->isEmpty()
+            || ($anteriores->count() === 1 && in_array($anteriores->first()->estado, [EstadoSolicitud::Rechazada, EstadoSolicitud::Error], true));
     }
 
     public function pendientes(): array

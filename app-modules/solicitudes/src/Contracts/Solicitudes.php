@@ -33,4 +33,13 @@ interface Solicitudes
      * @throws NoSePudoPresentarSolicitud
      */
     public function presentarPorUuid(string $uuid): int;
+
+    /**
+     * De los UUID dados, los que todavía se pueden pedir con presentarPorUuid, en mayúsculas: sin Solicitud por UUID,
+     * o con una sola que terminó Rechazada o en Error.
+     *
+     * @param  list<string>  $uuids
+     * @return list<string>
+     */
+    public function porPedirPorUuid(array $uuids): array;
 }
