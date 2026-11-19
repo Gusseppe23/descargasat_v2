@@ -3,6 +3,7 @@
 namespace DescargaSat\Cancelaciones\Actions;
 
 use DescargaSat\Cancelaciones\Contracts\EstadoCancelacion;
+use DescargaSat\Cancelaciones\Jobs\PedirMetadataFaltante;
 use DescargaSat\Cancelaciones\Models\CancelacionPendiente;
 use DescargaSat\Cancelaciones\Models\RevisionDeCancelaciones;
 use DescargaSat\Csd\Contracts\Csds;
@@ -62,6 +63,8 @@ class RevisarCancelaciones
                     ->update(['estado' => EstadoCancelacion::Retirada]);
             }
         });
+
+        PedirMetadataFaltante::dispatch();
 
         return RevisionDeCancelaciones::create([
             'csd_id' => $csd->id,
