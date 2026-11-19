@@ -16,11 +16,13 @@ class PresentarSolicitud
     public function __construct(private ConexionSat $conexionSat) {}
 
     /**
-     * Una Solicitud que el SAT ya aceptó con los mismos parámetros; las Rechazadas no gastan intentos.
+     * Una Solicitud por periodo que el SAT ya aceptó con los mismos parámetros; las Rechazadas no gastan intentos.
+     * Las Solicitudes por UUID no cuentan: tienen sus propios parámetros.
      */
     public function duplicadaDe(ParametrosSolicitud $parametros): ?Solicitud
     {
         return Solicitud::query()
+            ->whereNull('uuid')
             ->where('servicio', $parametros->servicio)
             ->whereDate('fecha_inicio', $parametros->fechaInicio)
             ->whereDate('fecha_fin', $parametros->fechaFin)
@@ -36,11 +38,12 @@ class PresentarSolicitud
     /**
      * Presenta la Solicitud al SAT con la Fiel indicada y guarda la respuesta.
      *
-     * Si el SAT no responde no se guarda nada, porque no hay identificador que verificar.
+     * Si el SAT no responde no se guarda nada, porque no hay identificador que verificar. Sin usuario es una
+     * Solicitud automática, presentada por la aplicación.
      *
      * @throws ValidationException
      */
-    public function __invoke(ParametrosSolicitud $parametros, int $fielId, User $usuario): Solicitud
+    public function __invoke(ParametrosSolicitud $parametros, int $fielId, ?User $usuario): Solicitud
     {
         try {
             $resultado = $this->conexionSat->servicio($fielId, $parametros->servicio)->query($parametros->paraSat());
@@ -55,7 +58,9 @@ class PresentarSolicitud
 
         return Solicitud::create([
             'fiel_id' => $fielId,
-            'presentada_por_id' => $usuario->id,
+            'presentada_por_id' => $usuario?->id,
+            'automatica' => $usuario === null,
+            'uuid' => $parametros->uuid !== null ? strtoupper($parametros->uuid) : null,
             'servicio' => $parametros->servicio,
             'fecha_inicio' => $parametros->fechaInicio,
             'fecha_fin' => $parametros->fechaFin,

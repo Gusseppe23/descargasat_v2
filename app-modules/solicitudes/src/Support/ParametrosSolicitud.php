@@ -14,6 +14,7 @@ use PhpCfdi\SatWsDescargaMasiva\Shared\DocumentStatus;
 use PhpCfdi\SatWsDescargaMasiva\Shared\DocumentType;
 use PhpCfdi\SatWsDescargaMasiva\Shared\DownloadType;
 use PhpCfdi\SatWsDescargaMasiva\Shared\RequestType;
+use PhpCfdi\SatWsDescargaMasiva\Shared\Uuid;
 
 /**
  * Lo que el usuario pide en una Solicitud, antes de presentarla al SAT.
@@ -36,6 +37,7 @@ final readonly class ParametrosSolicitud
         public TipoSolicitud $tipoSolicitud,
         ?TipoComprobante $tipoComprobante,
         EstadoComprobante $estadoComprobante,
+        public ?string $uuid = null,
     ) {
         $this->tipoComprobante = $servicio === Servicio::Cfdi ? $tipoComprobante : null;
         $this->estadoComprobante = self::soloVigentes($tipoDescarga, $tipoSolicitud)
@@ -49,13 +51,18 @@ final readonly class ParametrosSolicitud
     }
 
     /**
-     * Los parámetros en el formato de la librería del SAT.
+     * Los parámetros en el formato de la librería del SAT. Con UUID es una Solicitud por folio.
      *
      * El periodo va de 00:00:00 del día inicial a 23:59:59 del día final; si el día final es hoy,
      * termina en la hora actual para no pedir comprobantes del futuro.
      */
     public function paraSat(): QueryParameters
     {
+        if ($this->uuid !== null) {
+            // Por folio el SAT solo usa el UUID e ignora el periodo, el tipo de solicitud y los filtros; entrega el XML.
+            return QueryParameters::create()->withUuid(Uuid::create($this->uuid));
+        }
+
         $fin = $this->fechaFin->endOfDay()->min(now());
 
         return QueryParameters::create(

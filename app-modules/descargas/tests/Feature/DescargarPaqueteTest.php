@@ -117,6 +117,11 @@ test('rolls the last paquete back to descargado when the solicitud cannot be mar
         {
             $this->solicitudes->anotarIntento($id, $problema);
         }
+
+        public function presentarPorUuid(string $uuid): int
+        {
+            return $this->solicitudes->presentarPorUuid($uuid);
+        }
     });
 
     // Se llama a handle() directo: la cola síncrona de pruebas no reintenta y llamaría a failed() de inmediato.

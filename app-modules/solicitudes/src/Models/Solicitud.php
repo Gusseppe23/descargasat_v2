@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $fiel_id
  * @property int|null $presentada_por_id
+ * @property bool $automatica
  * @property Servicio $servicio
  * @property CarbonImmutable $fecha_inicio
  * @property CarbonImmutable $fecha_fin
@@ -28,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property TipoSolicitud $tipo_solicitud
  * @property TipoComprobante|null $tipo_comprobante
  * @property EstadoComprobante $estado_comprobante
+ * @property string|null $uuid
  * @property string|null $id_solicitud_sat
  * @property EstadoSolicitud $estado
  * @property int|null $codigo_sat
@@ -40,7 +42,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 #[Table('solicitudes')]
 #[Fillable([
-    'fiel_id', 'presentada_por_id', 'servicio', 'fecha_inicio', 'fecha_fin', 'tipo_descarga', 'tipo_solicitud',
+    'fiel_id', 'presentada_por_id', 'automatica', 'uuid', 'servicio', 'fecha_inicio', 'fecha_fin', 'tipo_descarga', 'tipo_solicitud',
     'tipo_comprobante', 'estado_comprobante', 'id_solicitud_sat', 'estado', 'codigo_sat', 'mensaje_sat', 'verificada_el', 'ultimo_problema',
 ])]
 class Solicitud extends Model
@@ -65,6 +67,7 @@ class Solicitud extends Model
             'estado_comprobante' => EstadoComprobante::class,
             'estado' => EstadoSolicitud::class,
             'codigo_sat' => 'integer',
+            'automatica' => 'boolean',
             'verificada_el' => 'datetime',
         ];
     }
