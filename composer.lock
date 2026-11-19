@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c6dfd1c463f4d770fd082f44559ac349",
+    "content-hash": "dd7ec7e21cc5d886bed74be27e5e2d5d",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1078,6 +1078,38 @@
                     "DescargaSat\\Fiel\\Tests\\": "tests/",
                     "DescargaSat\\Fiel\\Database\\Factories\\": "database/factories/",
                     "DescargaSat\\Fiel\\Database\\Seeders\\": "database/seeders/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "descarga-sat/metadata",
+            "version": "1.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/metadata",
+                "reference": "e1c55166ec3942534394e41480374345e3ffb751"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "DescargaSat\\Metadata\\Providers\\MetadataServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DescargaSat\\Metadata\\": "src/",
+                    "DescargaSat\\Metadata\\Tests\\": "tests/",
+                    "DescargaSat\\Metadata\\Database\\Factories\\": "database/factories/",
+                    "DescargaSat\\Metadata\\Database\\Seeders\\": "database/seeders/"
                 }
             },
             "license": [

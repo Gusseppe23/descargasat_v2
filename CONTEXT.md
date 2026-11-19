@@ -48,6 +48,10 @@ _Avoid_: archivo, descarga, zip
 Los archivos extraídos del ZIP de un Paquete: un XML por comprobante, o el archivo de texto de metadata.
 _Avoid_: los XML, facturas
 
+**Metadata de CFDI**:
+Los datos de un comprobante que trae el archivo de texto de metadata de un Paquete (emisor, receptor, PAC, fechas, monto, efecto, estatus y fecha de cancelación), guardados por UUID. Si el mismo UUID llega en otro Paquete, se queda la más reciente.
+_Avoid_: metadatos, datos del CFDI
+
 ### Estados de una Solicitud
 
 **Aceptada**:
