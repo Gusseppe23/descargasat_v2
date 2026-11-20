@@ -37,13 +37,18 @@ final class CertificadoDePrueba
         return self::generar($rfc, $razonSocial, $numeroCertificado, $contrasena, null);
     }
 
+    /**
+     * @param  array<string, string>  $otrosDatos  Atributos extra del sujeto (y del emisor, porque es autofirmado), con los
+     *                                             nombres de openssl_csr_new, en el orden en que van en el certificado.
+     */
     public static function csd(
         string $rfc = 'EKU9003173C9',
         string $razonSocial = 'ESCUELA KEMPER URGATE',
         string $numeroCertificado = '30001000000500003417',
         string $contrasena = '12345678a',
+        array $otrosDatos = [],
     ): self {
-        return self::generar($rfc, $razonSocial, $numeroCertificado, $contrasena, 'Sucursal 1');
+        return self::generar($rfc, $razonSocial, $numeroCertificado, $contrasena, 'Sucursal 1', $otrosDatos);
     }
 
     /**
@@ -63,6 +68,7 @@ final class CertificadoDePrueba
         string $numeroCertificado,
         string $contrasena,
         ?string $sucursal,
+        array $otrosDatos = [],
     ): self {
         $llave = self::nuevaLlave();
 
@@ -71,6 +77,7 @@ final class CertificadoDePrueba
             'name' => $razonSocial,
             'organizationName' => $razonSocial,
             'organizationalUnitName' => $sucursal,
+            ...$otrosDatos,
             'x500UniqueIdentifier' => $rfc.' / ',
         ]);
 

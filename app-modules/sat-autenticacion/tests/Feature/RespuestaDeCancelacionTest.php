@@ -108,6 +108,27 @@ test('the signature of the solicitud verifies with the certificate', function (s
     'sha1' => ['sha1', 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'],
 ]);
 
+test('the issuer of the certificate goes in the .net format of the example of the sat', function () {
+    $certificado = CertificadoDePrueba::csd(otrosDatos: [
+        'emailAddress' => 'serviciosalcontribuyente@sat.gob.mx',
+        'streetAddress' => 'Av. Hidalgo 77, Col. Guerrero',
+        'postalCode' => '06300',
+        'countryName' => 'MX',
+        'stateOrProvinceName' => 'CDMX',
+        'localityName' => 'CUAUHTEMOC',
+        'unstructuredName' => 'responsable: ADMINISTRACION CENTRAL',
+    ]);
+    CsdsFalsos::usar($certificado);
+    $webClient = webClientDeRespuestas()->responderAcuse(UUID_A_RESPONDER, 'Rechazo');
+
+    app(ServicioCancelaciones::class)->responder(1, UUID_A_RESPONDER, Respuesta::Rechazo);
+
+    $solicitud = solicitudEnviada($webClient->peticiones[0]->getBody());
+
+    expect($solicitud->getElementsByTagNameNS('http://www.w3.org/2000/09/xmldsig#', 'X509IssuerName')->item(0)->textContent)
+        ->toBe('OID.2.5.4.45="EKU9003173C9 / ", OID.1.2.840.113549.1.9.2=responsable: ADMINISTRACION CENTRAL, L=CUAUHTEMOC, S=CDMX, C=MX, PostalCode=06300, STREET="Av. Hidalgo 77, Col. Guerrero", E=serviciosalcontribuyente@sat.gob.mx, OU=Sucursal 1, O=ESCUELA KEMPER URGATE, OID.2.5.4.41=ESCUELA KEMPER URGATE, CN=ESCUELA KEMPER URGATE');
+});
+
 test('a tampered solicitud no longer verifies', function () {
     $certificado = CertificadoDePrueba::csd();
     CsdsFalsos::usar($certificado);
