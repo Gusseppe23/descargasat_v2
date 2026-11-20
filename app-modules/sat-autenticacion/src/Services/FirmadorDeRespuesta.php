@@ -23,6 +23,43 @@ class FirmadorDeRespuesta
     public const C14N_INCLUSIVA = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315';
 
     /**
+     * Cómo escribe .NET (X500DistinguishedName.Name) cada atributo del nombre X.500, por su nombre corto en OpenSSL.
+     * Los que .NET no conoce van como OID.<oid>.
+     *
+     * @var array<string, string>
+     */
+    private const CLAVES_DOTNET = [
+        'CN' => 'CN',
+        'O' => 'O',
+        'OU' => 'OU',
+        'C' => 'C',
+        'ST' => 'S',
+        'L' => 'L',
+        'street' => 'STREET',
+        'emailAddress' => 'E',
+        'DC' => 'DC',
+        'serialNumber' => 'SERIALNUMBER',
+        'title' => 'T',
+        'GN' => 'G',
+        'initials' => 'I',
+        'SN' => 'SN',
+        'postalCode' => 'PostalCode',
+        'telephoneNumber' => 'Phone',
+        'description' => 'Description',
+        'postOfficeBox' => 'POBox',
+        'x500UniqueIdentifier' => 'OID.2.5.4.45',
+        'unstructuredName' => 'OID.1.2.840.113549.1.9.2',
+        'unstructuredAddress' => 'OID.1.2.840.113549.1.9.8',
+        'name' => 'OID.2.5.4.41',
+        'businessCategory' => 'OID.2.5.4.15',
+        'organizationIdentifier' => 'OID.2.5.4.97',
+        'dnQualifier' => 'OID.2.5.4.46',
+        'generationQualifier' => 'OID.2.5.4.44',
+        'pseudonym' => 'OID.2.5.4.65',
+        'UID' => 'OID.0.9.2342.19200300.100.1.1',
+    ];
+
+    /**
      * @var array<string, array{firma: string, digest: string, openssl: int}>
      */
     public const ALGORITMOS = [
@@ -80,11 +117,42 @@ class FirmadorDeRespuesta
         $certificado = $credencial->certificate();
         $datosX509 = $this->agregar($this->agregar($firma, self::NS_DSIG, 'KeyInfo'), self::NS_DSIG, 'X509Data');
         $emisorYSerie = $this->agregar($datosX509, self::NS_DSIG, 'X509IssuerSerial');
-        $this->agregar($emisorYSerie, self::NS_DSIG, 'X509IssuerName', $certificado->issuerAsRfc4514());
+        $this->agregar($emisorYSerie, self::NS_DSIG, 'X509IssuerName', $this->nombreDotNet($certificado->issuer()));
         $this->agregar($emisorYSerie, self::NS_DSIG, 'X509SerialNumber', $certificado->serialNumber()->decimal());
         $this->agregar($datosX509, self::NS_DSIG, 'X509Certificate', (string) preg_replace('/-----[A-Z ]+-----|\s/', '', $certificado->pem()));
 
         return (string) $documento->saveXML($solicitud);
+    }
+
+    /**
+     * El nombre X.500 como lo escribe .NET en el ejemplo 6.1 del SAT (issue #81): atributos en orden inverso al del
+     * certificado, separados por ", ", con las claves de .NET y entre comillas los valores con caracteres especiales.
+     *
+     * @param  array<string, string|list<string>>  $atributos  Los de openssl_x509_parse, en el orden del certificado.
+     *
+     * @throws InvalidArgumentException cuando un atributo no tiene clave .NET conocida.
+     */
+    private function nombreDotNet(array $atributos): string
+    {
+        $partes = [];
+
+        foreach ($atributos as $nombre => $valores) {
+            $clave = self::CLAVES_DOTNET[$nombre]
+                ?? (preg_match('/^\d+(\.\d+)+$/', $nombre) === 1 ? "OID.{$nombre}" : throw new InvalidArgumentException("Atributo del emisor sin clave .NET conocida: {$nombre}."));
+
+            foreach ((array) $valores as $valor) {
+                $partes[] = $clave.'='.$this->valorDotNet($valor);
+            }
+        }
+
+        return implode(', ', array_reverse($partes));
+    }
+
+    private function valorDotNet(string $valor): string
+    {
+        $requiereComillas = $valor === '' || $valor !== trim($valor) || strpbrk($valor, ",+=\"\r\n<>#;") !== false;
+
+        return $requiereComillas ? '"'.str_replace('"', '""', $valor).'"' : $valor;
     }
 
     private function agregar(DOMElement $padre, string $namespace, string $nombre, ?string $texto = null): DOMElement

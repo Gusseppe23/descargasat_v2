@@ -38,6 +38,7 @@ Cada petición lleva hasta dos firmas independientes:
    Como la firma cubre **solo el Timestamp**, se puede sustituir ese cuerpo por la operación del servicio sin invalidarla.
 2. **Firma XMLDSig del cuerpo** (solo `ProcesarRespuesta`): se genera con `XmlCancelacionHelper::signCancellationAnswer()` de xml-cancelacion y se reacomoda al formato del ejemplo 6.1 del SAT.
    La forma del ejemplo 6.1 (la de `SignedXml` de .NET) es: `CanonicalizationMethod` c14n **inclusiva** (`http://www.w3.org/TR/2001/REC-xml-c14n-20010315`), `Reference URI=""` con **un solo** Transform `enveloped-signature`, `rsa-sha256`/`sha256`, y `KeyInfo` con `X509IssuerSerial` y `X509Certificate`. Con c14n exclusiva y un segundo Transform `exc-c14n`, el SAT respondió con un SOAP Fault de error interno de WCF, no con 30002 (issue #80).
+   El `X509IssuerName` va como lo escribe .NET (`X500DistinguishedName.Name`), igual que en el ejemplo 6.1: atributos en orden inverso al del certificado, separados por `, `, con las claves de .NET (`E`, `S`, `STREET`, `PostalCode`…) y `OID.<oid>` para las que .NET no conoce (`OID.2.5.4.45`, `OID.1.2.840.113549.1.9.2`), y los valores con comas entre comillas. El parser de .NET no acepta el formato RFC 4514 (`x500UniqueIdentifier=`, `\2c`) (issue #81).
 
 Qué se reutiliza: `Fiel::create()`/`new Fiel($credential)`, `FielRequestBuilder::authorization()`, `Shared\DateTime` (fechas UTC formato SAT), `XmlCancelacionHelper::signCancellationAnswer()`. **No** se usan `Service`, `Token`, `query()`, `verify()`, `download()`.
 
