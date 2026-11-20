@@ -41,11 +41,15 @@ function solicitudEnviada(string $sobre): DOMElement
 }
 
 /**
- * Verifica la firma XMLDSig de la solicitud tal como está dentro del sobre: el digest del elemento sin la firma
- * y el valor de la firma sobre el SignedInfo, ambos con c14n exclusiva.
+ * Verifica la firma XMLDSig de la solicitud como la valida SignedXml de .NET en el ejemplo 6.1 del SAT: la solicitud
+ * como documento suelto, el digest del documento sin la firma y el valor de la firma sobre el SignedInfo, ambos con
+ * c14n inclusiva.
  */
-function firmaEsValida(DOMElement $solicitud, string $cer, string $algoritmo): bool
+function firmaEsValida(DOMElement $solicitudEnElSobre, string $cer, string $algoritmo): bool
 {
+    $documento = new DOMDocument;
+    $documento->loadXML((string) $solicitudEnElSobre->ownerDocument->saveXML($solicitudEnElSobre));
+    $solicitud = $documento->documentElement;
     $dsig = 'http://www.w3.org/2000/09/xmldsig#';
     $firma = $solicitud->getElementsByTagNameNS($dsig, 'Signature')->item(0);
     $signedInfo = $firma->getElementsByTagNameNS($dsig, 'SignedInfo')->item(0);
@@ -53,10 +57,10 @@ function firmaEsValida(DOMElement $solicitud, string $cer, string $algoritmo): b
     $valorDeFirma = base64_decode($firma->getElementsByTagNameNS($dsig, 'SignatureValue')->item(0)->textContent);
     $pem = "-----BEGIN CERTIFICATE-----\n".chunk_split(base64_encode($cer), 64, "\n").'-----END CERTIFICATE-----';
 
-    $firmaCorrecta = openssl_verify($signedInfo->C14N(true, false), $valorDeFirma, $pem, $algoritmo === 'sha1' ? OPENSSL_ALGO_SHA1 : OPENSSL_ALGO_SHA256) === 1;
+    $firmaCorrecta = openssl_verify($signedInfo->C14N(false, false), $valorDeFirma, $pem, $algoritmo === 'sha1' ? OPENSSL_ALGO_SHA1 : OPENSSL_ALGO_SHA256) === 1;
 
     $solicitud->removeChild($firma);
-    $digestCorrecto = base64_encode(hash($algoritmo, $solicitud->C14N(true, false), true)) === $digestEsperado;
+    $digestCorrecto = base64_encode(hash($algoritmo, $documento->C14N(false, false), true)) === $digestEsperado;
 
     return $firmaCorrecta && $digestCorrecto;
 }
@@ -92,9 +96,12 @@ test('the signature of the solicitud verifies with the certificate', function (s
     app(ServicioCancelaciones::class)->responder(1, UUID_A_RESPONDER, Respuesta::Rechazo);
 
     $solicitud = solicitudEnviada($webClient->peticiones[0]->getBody());
-    $signatureMethod = $solicitud->getElementsByTagNameNS('http://www.w3.org/2000/09/xmldsig#', 'SignatureMethod')->item(0);
+    $dsig = 'http://www.w3.org/2000/09/xmldsig#';
+    $algoritmoDe = fn (DOMElement $elemento): string => $elemento->getAttribute('Algorithm');
 
-    expect($signatureMethod->getAttribute('Algorithm'))->toBe($metodoDeFirma)
+    expect($algoritmoDe($solicitud->getElementsByTagNameNS($dsig, 'SignatureMethod')->item(0)))->toBe($metodoDeFirma)
+        ->and($algoritmoDe($solicitud->getElementsByTagNameNS($dsig, 'CanonicalizationMethod')->item(0)))->toBe('http://www.w3.org/TR/2001/REC-xml-c14n-20010315')
+        ->and(array_map($algoritmoDe, iterator_to_array($solicitud->getElementsByTagNameNS($dsig, 'Transform'))))->toBe(['http://www.w3.org/2000/09/xmldsig#enveloped-signature'])
         ->and(firmaEsValida($solicitud, $certificado->cer, $algoritmo))->toBeTrue();
 })->with([
     'sha256' => ['sha256', 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'],

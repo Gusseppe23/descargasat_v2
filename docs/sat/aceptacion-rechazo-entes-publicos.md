@@ -37,6 +37,7 @@ Cada petición lleva hasta dos firmas independientes:
    Es exactamente lo que genera `FielRequestBuilder::authorization($created, $expires)` de sat-ws-descarga-masiva, con cuerpo `<Autentica xmlns="http://DescargaMasivaTerceros.gob.mx"/>`.
    Como la firma cubre **solo el Timestamp**, se puede sustituir ese cuerpo por la operación del servicio sin invalidarla.
 2. **Firma XMLDSig del cuerpo** (solo `ProcesarRespuesta`): se genera con `XmlCancelacionHelper::signCancellationAnswer()` de xml-cancelacion y se reacomoda al formato del ejemplo 6.1 del SAT.
+   La forma del ejemplo 6.1 (la de `SignedXml` de .NET) es: `CanonicalizationMethod` c14n **inclusiva** (`http://www.w3.org/TR/2001/REC-xml-c14n-20010315`), `Reference URI=""` con **un solo** Transform `enveloped-signature`, `rsa-sha256`/`sha256`, y `KeyInfo` con `X509IssuerSerial` y `X509Certificate`. Con c14n exclusiva y un segundo Transform `exc-c14n`, el SAT respondió con un SOAP Fault de error interno de WCF, no con 30002 (issue #80).
 
 Qué se reutiliza: `Fiel::create()`/`new Fiel($credential)`, `FielRequestBuilder::authorization()`, `Shared\DateTime` (fechas UTC formato SAT), `XmlCancelacionHelper::signCancellationAnswer()`. **No** se usan `Service`, `Token`, `query()`, `verify()`, `download()`.
 
