@@ -8,6 +8,10 @@ use DescargaSat\SatAutenticacion\Contracts\Respuesta;
 use DescargaSat\SatAutenticacion\Contracts\RespuestaNoXml;
 use DescargaSat\SatAutenticacion\Contracts\ServicioCancelaciones;
 use DescargaSat\SatAutenticacion\Contracts\WebClientCancelaciones;
+use DescargaSat\SatAutenticacion\Services\GuzzleWebClientCancelaciones;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use Tests\Support\CertificadoDePrueba;
 use Tests\Support\CsdsFalsos;
 use Tests\Support\WebClientFalso;
@@ -150,6 +154,22 @@ test('the problems after sending keep the sent envelope', function (Closure $pre
     'not xml' => [fn (WebClientFalso $webClient) => $webClient->responderTexto('<html>', 502), RespuestaNoXml::class],
     'no connection' => [fn (WebClientFalso $webClient) => $webClient->sinConexion(), ProblemaConElSat::class],
 ]);
+
+test('a soap fault that the real client receives with http 500 reaches as a fault of the sat', function () {
+    CsdsFalsos::usar();
+    $fault = (string) file_get_contents(base_path('tests/Fixtures/sat/cancelaciones-fault.xml'));
+    $guzzle = HandlerStack::create(new MockHandler([new Response(500, ['Content-Type' => 'text/xml'], $fault)]));
+    app()->instance(WebClientCancelaciones::class, GuzzleWebClientCancelaciones::crear(['handler' => $guzzle]));
+
+    try {
+        app(ServicioCancelaciones::class)->responder(1, UUID_A_RESPONDER, Respuesta::Aceptacion);
+        $this->fail('Debió lanzar FaultDelSat');
+    } catch (ProblemaConElSat $error) {
+        expect($error)->toBeInstanceOf(FaultDelSat::class)
+            ->and($error->getMessage())->toBe('El SAT respondió con un error SOAP: An error occurred when verifying security for the message.')
+            ->and($error->xmlEnviado)->toContain('ProcesarRespuesta');
+    }
+});
 
 test('refuses to answer with an expired csd without contacting the sat', function () {
     CsdsFalsos::usar(CertificadoDePrueba::csd());

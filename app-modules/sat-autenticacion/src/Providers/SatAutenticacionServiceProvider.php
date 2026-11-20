@@ -43,10 +43,10 @@ class SatAutenticacionServiceProvider extends ServiceProvider
             RequestOptions::TIMEOUT => 300,
         ])));
 
-        $this->app->bind(WebClientCancelaciones::class, fn (): WebClientCancelaciones => new GuzzleWebClientCancelaciones(new Client([
+        $this->app->bind(WebClientCancelaciones::class, fn (): WebClientCancelaciones => GuzzleWebClientCancelaciones::crear([
             RequestOptions::CONNECT_TIMEOUT => 10,
             RequestOptions::TIMEOUT => (int) config('sat.cancelaciones.timeout'),
-        ])));
+        ]));
 
         $this->app->bind(WebClientConsultaCfdi::class, fn (): WebClientConsultaCfdi => new GuzzleWebClientConsultaCfdi(new Client([
             RequestOptions::CONNECT_TIMEOUT => 10,
