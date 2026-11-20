@@ -1,6 +1,6 @@
 # Referencia técnica: Servicio de Cancelación Aceptación/Rechazo para Entes Públicos (SAT)
 
-> Fuente: guía interna "Autenticación y consumo del servicio de Cancelación Aceptación/Rechazo para Entes Públicos" (8 oct 2026), basada en la *Documentación del Servicio de Cancelación Aceptación/Rechazo para Entes Públicos*, SAT v1.1, agosto 2019.
+> Fuente: guía interna "Autenticación y consumo del servicio de Cancelación Aceptación/Rechazo para Entes Públicos" (8 oct 2026), basada en la *Documentación del Servicio de Cancelación Aceptación/Rechazo para Entes Públicos*, SAT v1.1, agosto 2019. El documento del SAT está en [`ws-aceptacion-rechazo-cancelacion-ep-1.1.pdf`](ws-aceptacion-rechazo-cancelacion-ep-1.1.pdf).
 > El código de este documento es una **referencia**, no código final: debe adaptarse a la arquitectura de descargasat_v2.
 
 ## 1. Diferencias con la descarga masiva
