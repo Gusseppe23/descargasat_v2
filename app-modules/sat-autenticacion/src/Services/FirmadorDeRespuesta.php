@@ -11,15 +11,16 @@ use PhpCfdi\Credentials\Credential;
 /**
  * Arma y firma la SolicitudAceptacionRechazo de una Respuesta de cancelación (ADR-0005).
  *
- * Firma XMLDSig enveloped (Reference URI="") del elemento exactamente con el namespace con el que viaja dentro de
- * ProcesarRespuesta. Se canonicaliza con xml-exc-c14n para que el digest sea el mismo si el SAT verifica el elemento
- * suelto o dentro del sobre, donde hereda namespaces del s:Envelope que no usa.
+ * Firma XMLDSig enveloped (Reference URI="") de la solicitud como documento suelto, exactamente con el namespace con
+ * el que viaja dentro de ProcesarRespuesta. Sigue la forma del ejemplo 6.1 del SAT, la que produce SignedXml de .NET:
+ * c14n inclusiva y un solo Transform enveloped-signature. Con c14n exclusiva y un segundo Transform el SAT respondió
+ * con un error interno (issue #80).
  */
 class FirmadorDeRespuesta
 {
     public const NS_DSIG = 'http://www.w3.org/2000/09/xmldsig#';
 
-    public const C14N_EXCLUSIVA = 'http://www.w3.org/2001/10/xml-exc-c14n#';
+    public const C14N_INCLUSIVA = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315';
 
     /**
      * @var array<string, array{firma: string, digest: string, openssl: int}>
@@ -60,21 +61,20 @@ class FirmadorDeRespuesta
         $this->agregar($folios, LectorDeRespuestas::NS_DATOS, 'UUID', strtoupper($uuid));
         $this->agregar($folios, LectorDeRespuestas::NS_DATOS, 'Respuesta', $respuesta->value);
 
-        $digest = base64_encode(hash($algoritmo, (string) $solicitud->C14N(true, false), true));
+        $digest = base64_encode(hash($algoritmo, (string) $documento->C14N(false, false), true));
 
         $firma = $this->agregar($solicitud, self::NS_DSIG, 'Signature');
         $signedInfo = $this->agregar($firma, self::NS_DSIG, 'SignedInfo');
-        $this->agregar($signedInfo, self::NS_DSIG, 'CanonicalizationMethod')->setAttribute('Algorithm', self::C14N_EXCLUSIVA);
+        $this->agregar($signedInfo, self::NS_DSIG, 'CanonicalizationMethod')->setAttribute('Algorithm', self::C14N_INCLUSIVA);
         $this->agregar($signedInfo, self::NS_DSIG, 'SignatureMethod')->setAttribute('Algorithm', $algoritmos['firma']);
         $referencia = $this->agregar($signedInfo, self::NS_DSIG, 'Reference');
         $referencia->setAttribute('URI', '');
         $transformaciones = $this->agregar($referencia, self::NS_DSIG, 'Transforms');
         $this->agregar($transformaciones, self::NS_DSIG, 'Transform')->setAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#enveloped-signature');
-        $this->agregar($transformaciones, self::NS_DSIG, 'Transform')->setAttribute('Algorithm', self::C14N_EXCLUSIVA);
         $this->agregar($referencia, self::NS_DSIG, 'DigestMethod')->setAttribute('Algorithm', $algoritmos['digest']);
         $this->agregar($referencia, self::NS_DSIG, 'DigestValue', $digest);
 
-        $valorDeFirma = $credencial->sign((string) $signedInfo->C14N(true, false), $algoritmos['openssl']);
+        $valorDeFirma = $credencial->sign((string) $signedInfo->C14N(false, false), $algoritmos['openssl']);
         $this->agregar($firma, self::NS_DSIG, 'SignatureValue', base64_encode($valorDeFirma));
 
         $certificado = $credencial->certificate();
