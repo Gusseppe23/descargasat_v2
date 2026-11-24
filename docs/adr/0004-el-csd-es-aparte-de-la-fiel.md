@@ -1,3 +1,5 @@
 # El CSD es un concepto aparte de la Fiel
 
 Para responder cancelaciones como ente público, el SAT pide el CSD de la dependencia, mientras que la descarga masiva solo funciona con la FIEL. Guardamos el CSD en su propio módulo (`csd`), con su propio almacenamiento cifrado y su propio CSD activo, y el módulo `fiel` sigue rechazando los CSD. Descartamos generalizar la Fiel en una "credencial con tipo" porque obligaba a cambiar un módulo que ya funciona, a filtrar por tipo en cada uso (un CSD no sirve para descargar y la validación de `Fiel::isValid()` lo rechaza) y a reescribir el glosario. El precio es duplicar la lógica de guardado cifrado; si algún día aparece un tercer tipo de certificado, conviene revisar esta decisión.
+
+Actualización (#87): el SAT pide la Fiel para autenticar el servicio de cancelaciones; el CSD queda para dar el RFC y sellar la Respuesta de cancelación (ADR-0008).

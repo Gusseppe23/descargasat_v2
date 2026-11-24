@@ -11,7 +11,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 use Tests\Support\CsdsFalsos;
+use Tests\Support\FielesFalsas;
 use Tests\Support\WebClientFalso;
+
+beforeEach(function () {
+    FielesFalsas::usar();
+});
 
 test('revisar ahora queues the revision on the database queue and shows it is running', function () {
     Queue::fake();

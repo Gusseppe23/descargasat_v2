@@ -4,8 +4,10 @@ namespace DescargaSat\SatAutenticacion\Services;
 
 use Carbon\CarbonImmutable;
 use DescargaSat\Csd\Contracts\Csds;
+use DescargaSat\Fiel\Contracts\Fieles;
 use DescargaSat\SatAutenticacion\Contracts\AcuseDeRespuesta;
 use DescargaSat\SatAutenticacion\Contracts\CsdNoVigente;
+use DescargaSat\SatAutenticacion\Contracts\FielNoUtilizable;
 use DescargaSat\SatAutenticacion\Contracts\PeticionesPendientes;
 use DescargaSat\SatAutenticacion\Contracts\ProblemaConElSat;
 use DescargaSat\SatAutenticacion\Contracts\Respuesta;
@@ -23,6 +25,7 @@ class ServicioCancelacionesSat implements ServicioCancelaciones
 
     public function __construct(
         private Csds $csds,
+        private Fieles $fieles,
         private WebClientCancelaciones $webClient,
         private SobreCancelaciones $sobres,
         private LectorDeRespuestas $lector,
@@ -40,7 +43,7 @@ class ServicioCancelacionesSat implements ServicioCancelaciones
         );
 
         $pendientes = $this->lector->peticionesPendientes(
-            $this->enviar('ObtenerPeticionesPendientes', $this->sobres->sobre($credencial, $cuerpo)),
+            $this->enviar('ObtenerPeticionesPendientes', $this->sobres->sobre($this->credencialDeAutenticacion($credencial->rfc()), $cuerpo)),
         );
 
         if ($pendientes->codigo() === null) {
@@ -61,13 +64,40 @@ class ServicioCancelacionesSat implements ServicioCancelaciones
             LectorDeRespuestas::NS_SERVICIO,
             $this->firmador->firmar($credencial, $uuid, $respuesta, (string) config('sat.cancelaciones.firma')),
         );
-        $sobre = $this->sobres->sobre($credencial, $cuerpo);
+        $sobre = $this->sobres->sobre($this->credencialDeAutenticacion($credencial->rfc()), $cuerpo);
 
         try {
             return $this->lector->acuse($this->enviar('ProcesarRespuesta', $sobre), $sobre);
         } catch (ProblemaConElSat $error) {
             throw $error->conXmlEnviado($sobre);
         }
+    }
+
+    /**
+     * La credencial de la Fiel activa, con la que se autentica el sobre: el SAT no acepta el CSD para autenticar.
+     * Tiene que ser vigente y del mismo RFC que el CSD.
+     *
+     * @throws FielNoUtilizable
+     */
+    private function credencialDeAutenticacion(string $rfcDelCsd): Credential
+    {
+        $fiel = $this->fieles->activa()
+            ?? throw new FielNoUtilizable('No hay una FIEL activa. El SAT pide la FIEL para autenticar el servicio de cancelaciones; activa una en la pantalla FIEL.');
+
+        if (! now()->between($fiel->vigenteDesde, $fiel->vigenteHasta)) {
+            throw new FielNoUtilizable(sprintf(
+                'La FIEL activa %s no está vigente (del %s al %s).',
+                $fiel->numeroCertificado,
+                $fiel->vigenteDesde->format('d/m/Y'),
+                $fiel->vigenteHasta->format('d/m/Y'),
+            ));
+        }
+
+        if ($fiel->rfc !== $rfcDelCsd) {
+            throw new FielNoUtilizable("La FIEL activa es del RFC {$fiel->rfc} y el CSD del RFC {$rfcDelCsd}; tienen que ser del mismo RFC.");
+        }
+
+        return $this->fieles->credencial($fiel->id);
     }
 
     /**

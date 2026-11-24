@@ -3,6 +3,7 @@
 use DescargaSat\SatAutenticacion\Contracts\CodigoCancelacion;
 use DescargaSat\SatAutenticacion\Contracts\CsdNoVigente;
 use DescargaSat\SatAutenticacion\Contracts\FaultDelSat;
+use DescargaSat\SatAutenticacion\Contracts\FielNoUtilizable;
 use DescargaSat\SatAutenticacion\Contracts\FormatoDeAutorizacionCambiado;
 use DescargaSat\SatAutenticacion\Contracts\ProblemaConElSat;
 use DescargaSat\SatAutenticacion\Contracts\RespuestaNoXml;
@@ -12,6 +13,7 @@ use DescargaSat\SatAutenticacion\Services\SobreCancelaciones;
 use Illuminate\Support\Facades\Log;
 use Tests\Support\CertificadoDePrueba;
 use Tests\Support\CsdsFalsos;
+use Tests\Support\FielesFalsas;
 use Tests\Support\WebClientFalso;
 
 /**
@@ -25,9 +27,14 @@ function webClientDeCancelaciones(): WebClientFalso
     return $webClient;
 }
 
-test('sends the signed envelope asking for the pendientes of the rfc of the csd', function () {
-    $certificado = CertificadoDePrueba::csd(rfc: 'EKU9003173C9');
-    CsdsFalsos::usar($certificado);
+beforeEach(function () {
+    FielesFalsas::usar();
+});
+
+test('sends the envelope authenticated with the fiel asking for the pendientes of the rfc of the csd', function () {
+    CsdsFalsos::usar(CertificadoDePrueba::csd(rfc: 'EKU9003173C9'));
+    $fiel = CertificadoDePrueba::fiel(rfc: 'EKU9003173C9');
+    FielesFalsas::usar($fiel);
     config(['sat.cancelaciones.url' => 'https://sat.invalid/AceptacionRechazoServiceEP.svc']);
     $webClient = webClientDeCancelaciones()->responder('cancelaciones-sin-solicitudes.xml');
 
@@ -46,7 +53,7 @@ test('sends the signed envelope asking for the pendientes of the rfc of the csd'
         ->and($peticion->getUri())->toBe('https://sat.invalid/AceptacionRechazoServiceEP.svc')
         ->and($peticion->getHeaders()['SOAPAction'])->toBe('"http://cancelacfd.sat.gob.mx/entespublicos/IAceptacionRechazoServiceEP/ObtenerPeticionesPendientes"')
         ->and($xpath->evaluate('count(/s:Envelope/s:Header/o:Security/u:Timestamp)'))->toEqual(1)
-        ->and($xpath->evaluate('string(/s:Envelope/s:Header/o:Security/o:BinarySecurityToken)'))->toBe(base64_encode($certificado->cer))
+        ->and($xpath->evaluate('string(/s:Envelope/s:Header/o:Security/o:BinarySecurityToken)'))->toBe(base64_encode($fiel->cer))
         ->and($xpath->evaluate('string(/s:Envelope/s:Body/ep:ObtenerPeticionesPendientes/ep:RfcReceptor)'))->toBe('EKU9003173C9')
         ->and($peticion->getBody())->not->toContain('Autentica');
 });
@@ -147,5 +154,37 @@ test('refuses to ask with a csd that is not valid yet without contacting the sat
 
     expect(fn () => app(ServicioCancelaciones::class)->pendientes(1))
         ->toThrow(CsdNoVigente::class, 'El CSD 30001000000500003417 entra en vigor el '.$certificado->vigenteDesde->format('d/m/Y').'.')
+        ->and($webClient->peticiones)->toBeEmpty();
+});
+
+test('refuses to ask without an active fiel without contacting the sat', function () {
+    CsdsFalsos::usar();
+    FielesFalsas::usar(hayActiva: false);
+    $webClient = webClientDeCancelaciones();
+
+    expect(fn () => app(ServicioCancelaciones::class)->pendientes(1))
+        ->toThrow(FielNoUtilizable::class, 'No hay una FIEL activa. El SAT pide la FIEL para autenticar el servicio de cancelaciones; activa una en la pantalla FIEL.')
+        ->and($webClient->peticiones)->toBeEmpty();
+});
+
+test('refuses to ask with an expired fiel without contacting the sat', function () {
+    CsdsFalsos::usar();
+    $fiel = CertificadoDePrueba::fiel(diasDeVigencia: 1);
+    FielesFalsas::usar($fiel);
+    $webClient = webClientDeCancelaciones();
+    $this->travel(2)->days();
+
+    expect(fn () => app(ServicioCancelaciones::class)->pendientes(1))
+        ->toThrow(FielNoUtilizable::class, 'La FIEL activa 30001000000500003416 no está vigente (del '.$fiel->vigenteDesde->format('d/m/Y').' al '.$fiel->vigenteHasta->format('d/m/Y').').')
+        ->and($webClient->peticiones)->toBeEmpty();
+});
+
+test('refuses to ask with a fiel of another rfc without contacting the sat', function () {
+    CsdsFalsos::usar(CertificadoDePrueba::csd(rfc: 'EKU9003173C9'));
+    FielesFalsas::usar(CertificadoDePrueba::fiel(rfc: 'XAXX010101000'));
+    $webClient = webClientDeCancelaciones();
+
+    expect(fn () => app(ServicioCancelaciones::class)->pendientes(1))
+        ->toThrow(FielNoUtilizable::class, 'La FIEL activa es del RFC XAXX010101000 y el CSD del RFC EKU9003173C9; tienen que ser del mismo RFC.')
         ->and($webClient->peticiones)->toBeEmpty();
 });
