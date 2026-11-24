@@ -28,17 +28,13 @@ final class CertificadoDePrueba
         public readonly DateTimeImmutable $vigenteHasta,
     ) {}
 
-    /**
-     * @param  int  $diasDeVigencia  Días que la FIEL es vigente a partir de hoy.
-     */
     public static function fiel(
         string $rfc = 'EKU9003173C9',
         string $razonSocial = 'ESCUELA KEMPER URGATE',
         string $numeroCertificado = '30001000000500003416',
         string $contrasena = '12345678a',
-        int $diasDeVigencia = 1461,
     ): self {
-        return self::generar($rfc, $razonSocial, $numeroCertificado, $contrasena, null, diasDeVigencia: $diasDeVigencia);
+        return self::generar($rfc, $razonSocial, $numeroCertificado, $contrasena, null);
     }
 
     /**
@@ -73,7 +69,6 @@ final class CertificadoDePrueba
         string $contrasena,
         ?string $sucursal,
         array $otrosDatos = [],
-        int $diasDeVigencia = 1461,
     ): self {
         $llave = self::nuevaLlave();
 
@@ -87,7 +82,7 @@ final class CertificadoDePrueba
         ]);
 
         $csr = openssl_csr_new($sujeto, $llave, ['digest_alg' => 'sha256']);
-        $firmado = $csr === false ? false : openssl_csr_sign($csr, null, $llave, $diasDeVigencia, ['digest_alg' => 'sha256'], 0, bin2hex($numeroCertificado));
+        $firmado = $csr === false ? false : openssl_csr_sign($csr, null, $llave, 1461, ['digest_alg' => 'sha256'], 0, bin2hex($numeroCertificado));
 
         if ($firmado === false || ! openssl_x509_export($firmado, $pem) || ! openssl_pkey_export($llave, $llavePem, $contrasena)) {
             throw new RuntimeException('No se pudo generar el certificado de prueba: '.openssl_error_string());

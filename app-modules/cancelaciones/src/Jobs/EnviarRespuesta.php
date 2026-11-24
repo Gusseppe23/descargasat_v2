@@ -8,7 +8,6 @@ use DescargaSat\Cancelaciones\Models\EnvioDeRespuesta;
 use DescargaSat\SatAutenticacion\Contracts\AcuseDeRespuesta;
 use DescargaSat\SatAutenticacion\Contracts\CodigoCancelacion;
 use DescargaSat\SatAutenticacion\Contracts\CsdNoVigente;
-use DescargaSat\SatAutenticacion\Contracts\FielNoUtilizable;
 use DescargaSat\SatAutenticacion\Contracts\ProblemaConElSat;
 use DescargaSat\SatAutenticacion\Contracts\Respuesta;
 use DescargaSat\SatAutenticacion\Contracts\ServicioCancelaciones;
@@ -87,8 +86,8 @@ class EnviarRespuesta implements ShouldQueue
     {
         try {
             $acuse = $servicioCancelaciones->responder($envio->csd_id, $envio->cancelacion->uuid, $envio->respuesta);
-        } catch (CsdNoVigente|FielNoUtilizable|ModelNotFoundException $error) {
-            $problema = $error instanceof ModelNotFoundException ? 'El CSD del envío ya no existe.' : $error->getMessage();
+        } catch (CsdNoVigente|ModelNotFoundException $error) {
+            $problema = $error instanceof CsdNoVigente ? $error->getMessage() : 'El CSD del envío ya no existe.';
             $this->terminar($envio, ResultadoDeEnvio::NoProcesada, EstadoCancelacion::PorResponder, ['problema' => $problema]);
 
             return true;

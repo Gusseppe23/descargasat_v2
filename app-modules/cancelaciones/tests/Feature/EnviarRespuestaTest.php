@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\Support\CertificadoDePrueba;
 use Tests\Support\CsdsFalsos;
-use Tests\Support\FielesFalsas;
 use Tests\Support\WebClientFalso;
 
 const UUID_DEL_ENVIO = 'AE4B0CA8-8116-4699-8E20-77B6E9C507A2';
@@ -27,7 +26,6 @@ function envioEnCurso(Respuesta $respuesta = Respuesta::Rechazo): array
 {
     Storage::fake('local');
     CsdsFalsos::usar();
-    FielesFalsas::usar();
     $webClient = new WebClientFalso;
     app()->instance(WebClientCancelaciones::class, $webClient);
 
@@ -165,20 +163,6 @@ test('with an expired csd nothing is sent and it goes back to por responder', fu
         ->and($envio->resultado)->toBe(ResultadoDeEnvio::NoProcesada)
         ->and($envio->cancelacion->estado)->toBe(EstadoCancelacion::PorResponder)
         ->and($envio->problema)->toStartWith('El CSD 30001000000500003417 venció el');
-});
-
-test('without an active fiel nothing is sent and it goes back to por responder', function () {
-    [$envio, $webClient] = envioEnCurso();
-    FielesFalsas::usar(hayActiva: false);
-
-    enviar($envio);
-
-    $envio->refresh();
-
-    expect($webClient->peticiones)->toBeEmpty()
-        ->and($envio->resultado)->toBe(ResultadoDeEnvio::NoProcesada)
-        ->and($envio->cancelacion->estado)->toBe(EstadoCancelacion::PorResponder)
-        ->and($envio->problema)->toBe('No hay una FIEL activa. El SAT pide la FIEL para autenticar el servicio de cancelaciones; activa una en la pantalla FIEL.');
 });
 
 test('the detail shows the history of envios and offers the evidence only to download', function () {

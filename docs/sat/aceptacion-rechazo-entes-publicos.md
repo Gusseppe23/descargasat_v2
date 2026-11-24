@@ -10,7 +10,7 @@
 | Autenticación | `Autenticacion.svc` una vez, token reutilizable unos minutos | **Sin token**: cada petición lleva su propio encabezado WS-Security firmado |
 | Encabezado SOAP firmado | Solo en la llamada de autenticación | En **todas** las peticiones |
 | Firma del cuerpo | En cada solicitud | Solo en `ProcesarRespuesta` (la `SolicitudAceptacionRechazo`) |
-| Credencial | FIEL | **FIEL** para el encabezado WS-Security (lo confirmó soporte del SAT en nov. 2026, aunque la sección 3 dice CSD) y **CSD de la dependencia** para el sello del cuerpo de la Respuesta (ADR-0008) |
+| Credencial | FIEL | **CSD de la dependencia** según sección 3 del SAT (la sección 2 menciona FIEL) → debe soportar ambas |
 | Operaciones | Solicitud, verificación, descarga | `ObtenerPeticionesPendientes` y `ProcesarRespuesta` |
 
 ## 2. Endpoint
@@ -33,7 +33,7 @@ Paquetes: `phpcfdi/sat-ws-descarga-masiva`, `phpcfdi/xml-cancelacion`, `guzzleht
 
 Cada petición lleva hasta dos firmas independientes:
 
-1. **Encabezado WS-Security** (autentica al ente público, **con la FIEL**, no con el CSD; ADR-0008): `u:Timestamp` con `u:Id="_0"` y vigencia de 5 min, `o:BinarySecurityToken` X509v3 en Base64, canonicalización `xml-exc-c14n#`, `rsa-sha1`/`sha1`, referencia firmada `#_0` (solo el Timestamp), `KeyInfo` con `SecurityTokenReference`.
+1. **Encabezado WS-Security** (autentica al ente público): `u:Timestamp` con `u:Id="_0"` y vigencia de 5 min, `o:BinarySecurityToken` X509v3 en Base64, canonicalización `xml-exc-c14n#`, `rsa-sha1`/`sha1`, referencia firmada `#_0` (solo el Timestamp), `KeyInfo` con `SecurityTokenReference`.
    Es exactamente lo que genera `FielRequestBuilder::authorization($created, $expires)` de sat-ws-descarga-masiva, con cuerpo `<Autentica xmlns="http://DescargaMasivaTerceros.gob.mx"/>`.
    Como la firma cubre **solo el Timestamp**, se puede sustituir ese cuerpo por la operación del servicio sin invalidarla.
 2. **Firma XMLDSig del cuerpo** (solo `ProcesarRespuesta`): se genera con `XmlCancelacionHelper::signCancellationAnswer()` de xml-cancelacion y se reacomoda al formato del ejemplo 6.1 del SAT.
