@@ -21,7 +21,7 @@ class SobreCancelaciones
     private const ABRE_CUERPO = '<s:Body xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">';
 
     /**
-     * El sobre con el encabezado firmado con la credencial indicada (la Fiel activa), vigente 5 minutos, y el cuerpo indicado.
+     * El sobre con el encabezado firmado con el CSD, vigente 5 minutos, y el cuerpo indicado.
      *
      * @throws FormatoDeAutorizacionCambiado
      */

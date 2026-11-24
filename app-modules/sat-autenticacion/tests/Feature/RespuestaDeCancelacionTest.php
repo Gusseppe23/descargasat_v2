@@ -14,14 +14,9 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use Tests\Support\CertificadoDePrueba;
 use Tests\Support\CsdsFalsos;
-use Tests\Support\FielesFalsas;
 use Tests\Support\WebClientFalso;
 
 const UUID_A_RESPONDER = 'AE4B0CA8-8116-4699-8E20-77B6E9C507A2';
-
-beforeEach(function () {
-    FielesFalsas::usar();
-});
 
 /**
  * Sustituye el cliente web del servicio de cancelaciones para responder a ProcesarRespuesta.
@@ -91,26 +86,6 @@ test('sends the signed solicitud with the answer to procesar respuesta', functio
         ->and($folios->getElementsByTagNameNS('http://cancelacfd.sat.gob.mx', 'Respuesta')->item(0)->textContent)->toBe($respuesta->value)
         ->and($solicitud->getElementsByTagNameNS('http://www.w3.org/2000/09/xmldsig#', 'Signature')->length)->toBe(1);
 })->with([Respuesta::Aceptacion, Respuesta::Rechazo]);
-
-test('the envelope is authenticated with the fiel and the solicitud is signed with the csd', function () {
-    $csd = CertificadoDePrueba::csd(rfc: 'EKU9003173C9');
-    CsdsFalsos::usar($csd);
-    $fiel = CertificadoDePrueba::fiel(rfc: 'EKU9003173C9');
-    FielesFalsas::usar($fiel);
-    $webClient = webClientDeRespuestas()->responderAcuse(UUID_A_RESPONDER, 'Rechazo');
-
-    app(ServicioCancelaciones::class)->responder(1, UUID_A_RESPONDER, Respuesta::Rechazo);
-
-    $sobre = new DOMDocument;
-    $sobre->loadXML($webClient->peticiones[0]->getBody());
-    $xpath = new DOMXPath($sobre);
-    $xpath->registerNamespace('s', 'http://schemas.xmlsoap.org/soap/envelope/');
-    $xpath->registerNamespace('o', 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd');
-    $xpath->registerNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
-
-    expect($xpath->evaluate('string(/s:Envelope/s:Header/o:Security/o:BinarySecurityToken)'))->toBe(base64_encode($fiel->cer))
-        ->and($xpath->evaluate('string(/s:Envelope/s:Body//ds:X509Certificate)'))->toBe(base64_encode($csd->cer));
-});
 
 test('the signature of the solicitud verifies with the certificate', function (string $algoritmo, string $metodoDeFirma) {
     $certificado = CertificadoDePrueba::csd();

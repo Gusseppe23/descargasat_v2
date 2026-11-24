@@ -11,7 +11,7 @@ Par de certificado (.cer) y llave privada (.key) con su contraseña, emitido por
 _Avoid_: e.firma, firma electrónica, certificado
 
 **Fiel activa**:
-La única Fiel con la que se presentan nuevas Solicitudes y con la que se autentican las Revisiones de cancelaciones y los Envíos de respuesta. Activar una Fiel desactiva las demás.
+La única Fiel con la que se presentan nuevas Solicitudes. Activar una Fiel desactiva las demás.
 _Avoid_: Fiel actual, Fiel predeterminada
 
 **CSD**:
@@ -19,7 +19,7 @@ Certificado de sello digital (.cer, .key y contraseña) del mismo RFC que las Fi
 _Avoid_: sello, certificado, Fiel
 
 **CSD activo**:
-El único CSD que da el RFC de las Revisiones de cancelaciones y con el que se sellan las Respuestas de cancelación; la autenticación ante el servicio se hace con la Fiel activa (ADR-0008). Activar un CSD desactiva los demás.
+El único CSD con el que se hacen las Revisiones de cancelaciones y se envían las Respuestas de cancelación. Activar un CSD desactiva los demás.
 _Avoid_: CSD actual, CSD predeterminado
 
 ### Descarga masiva

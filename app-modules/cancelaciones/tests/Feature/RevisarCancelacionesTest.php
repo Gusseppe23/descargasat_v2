@@ -9,15 +9,10 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Cache;
 use Tests\Support\CertificadoDePrueba;
 use Tests\Support\CsdsFalsos;
-use Tests\Support\FielesFalsas;
 use Tests\Support\WebClientFalso;
 
 const PRIMER_UUID = 'AE4B0CA8-8116-4699-8E20-77B6E9C507A2';
 const SEGUNDO_UUID = 'D92516E5-A881-423C-B40F-384008DFE03F';
-
-beforeEach(function () {
-    FielesFalsas::usar();
-});
 
 /**
  * Sustituye el cliente web del servicio de cancelaciones y responde, en orden, con los fixtures indicados.
@@ -158,17 +153,6 @@ test('with an expired csd does not contact the sat and keeps the problem', funct
 
     expect($webClient->peticiones)->toBeEmpty()
         ->and(RevisionDeCancelaciones::sole()->problema)->toBe('El CSD 30001000000500003417 venció el '.$certificado->vigenteHasta->format('d/m/Y').'.');
-});
-
-test('without an active fiel does not contact the sat and keeps the problem', function () {
-    CsdsFalsos::usar();
-    FielesFalsas::usar(hayActiva: false);
-    $webClient = satRevisaCancelaciones();
-
-    $this->artisan('sat:cancelaciones')->assertSuccessful();
-
-    expect($webClient->peticiones)->toBeEmpty()
-        ->and(RevisionDeCancelaciones::sole()->problema)->toBe('No hay una FIEL activa. El SAT pide la FIEL para autenticar el servicio de cancelaciones; activa una en la pantalla FIEL.');
 });
 
 test('keeps the problem and changes nothing when the sat does not answer well', function () {

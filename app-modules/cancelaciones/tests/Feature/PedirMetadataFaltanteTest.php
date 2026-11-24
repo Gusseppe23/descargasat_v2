@@ -1,5 +1,7 @@
 <?php
 
+use DescargaSat\Cancelaciones\Models\CancelacionPendiente;
+use DescargaSat\Cancelaciones\Models\RevisionDeCancelaciones;
 use DescargaSat\Metadata\Models\MetadataDeCfdi;
 use DescargaSat\SatAutenticacion\Contracts\WebClientCancelaciones;
 use DescargaSat\Solicitudes\Models\Solicitud;
@@ -97,4 +99,16 @@ test('requests at most the configured number per revision and leaves the rest fo
 
     revisarYAtenderLaCola();
     expect(uuidsPedidos())->toBe([PRIMERA_PENDIENTE, SEGUNDA_PENDIENTE]);
+});
+
+test('without an active fiel it requests nothing and the revision is kept without problem', function () {
+    FielesFalsas::usar(hayActiva: false);
+    $descargaMasiva = satReportaPendientesYAceptaFolios();
+
+    revisarYAtenderLaCola();
+
+    expect(uuidsPedidos())->toBe([])
+        ->and($descargaMasiva->peticiones)->toBeEmpty()
+        ->and(RevisionDeCancelaciones::sole()->problema)->toBeNull()
+        ->and(CancelacionPendiente::count())->toBe(2);
 });
